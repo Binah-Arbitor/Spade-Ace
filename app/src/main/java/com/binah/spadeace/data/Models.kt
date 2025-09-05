@@ -10,7 +10,9 @@ data class AttackConfiguration(
     val dictionaryFile: File? = null,
     val threadCount: Int = Runtime.getRuntime().availableProcessors(),
     val chunkSize: Int = 1024 * 1024, // 1MB chunks
-    val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH
+    val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH,
+    val hardwareAcceleration: HardwareAcceleration = HardwareAcceleration.CPU_ONLY,
+    val enableGpuAcceleration: Boolean = false
 )
 
 enum class AttackType {
@@ -24,6 +26,22 @@ enum class OptimizationLevel {
     HIGH,
     EXTREME
 }
+
+enum class HardwareAcceleration {
+    CPU_ONLY,
+    GPU_ASSISTED,
+    HYBRID_MODE
+}
+
+data class GpuInfo(
+    val renderer: String = "Unknown",
+    val vendor: String = "Unknown", 
+    val version: String = "Unknown",
+    val isVulkanSupported: Boolean = false,
+    val isOpenClSupported: Boolean = false,
+    val chipset: String = "Unknown",
+    val supportedComputeUnits: Int = 0
+)
 
 data class AttackResult(
     val success: Boolean,

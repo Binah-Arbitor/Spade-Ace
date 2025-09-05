@@ -1,18 +1,21 @@
 package com.binah.spadeace.ui
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.binah.spadeace.core.DecryptionEngine
+import com.binah.spadeace.core.GpuDetector
 import com.binah.spadeace.data.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.File
 
-class MainViewModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     private val decryptionEngine = DecryptionEngine()
     private var currentAttackJob: Job? = null
+    private val gpuDetector = GpuDetector(application.applicationContext)
     
     private val _attackConfig = MutableStateFlow(AttackConfiguration())
     val attackConfig: StateFlow<AttackConfiguration> = _attackConfig.asStateFlow()
@@ -25,6 +28,16 @@ class MainViewModel : ViewModel() {
     
     private val _isAttackRunning = MutableStateFlow(false)
     val isAttackRunning: StateFlow<Boolean> = _isAttackRunning.asStateFlow()
+    
+    private val _gpuInfo = MutableStateFlow<GpuInfo?>(null)
+    val gpuInfo: StateFlow<GpuInfo?> = _gpuInfo.asStateFlow()
+    
+    init {
+        // Detect GPU info on initialization
+        viewModelScope.launch {
+            _gpuInfo.value = gpuDetector.detectGpuInfo()
+        }
+    }
     
     fun updateAttackConfig(config: AttackConfiguration) {
         _attackConfig.value = config
@@ -56,6 +69,22 @@ class MainViewModel : ViewModel() {
     
     fun updateOptimizationLevel(level: OptimizationLevel) {
         _attackConfig.value = _attackConfig.value.copy(optimizationLevel = level)
+    }
+    
+    fun updateHardwareAcceleration(acceleration: HardwareAcceleration) {
+        _attackConfig.value = _attackConfig.value.copy(hardwareAcceleration = acceleration)
+    }
+    
+    fun updateGpuAcceleration(enabled: Boolean) {
+        _attackConfig.value = _attackConfig.value.copy(enableGpuAcceleration = enabled)
+    }
+    
+    fun getSupportedChipsets(): List<String> {
+        return gpuDetector.getSupportedChipsetsList()
+    }
+    
+    fun isHardwareAccelerationSupported(): Boolean {
+        return gpuDetector.isHardwareAccelerationSupported()
     }
     
     fun startAttack() {

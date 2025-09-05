@@ -1,6 +1,8 @@
 package com.binah.spadeace.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.binah.spadeace.R
 import com.binah.spadeace.data.OptimizationLevel
+import com.binah.spadeace.data.HardwareAcceleration
 import com.binah.spadeace.ui.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +27,9 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val attackConfig by viewModel.attackConfig.collectAsState()
+    val gpuInfo by viewModel.gpuInfo.collectAsState()
+    val isHardwareSupported = viewModel.isHardwareAccelerationSupported()
+    val supportedChipsets = viewModel.getSupportedChipsets()
     
     Column(
         modifier = modifier
@@ -119,6 +125,113 @@ fun SettingsScreen(
             }
         }
         
+        // Hardware Acceleration Settings
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Hardware Acceleration",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                // GPU Acceleration Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Enable GPU Acceleration",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = if (isHardwareSupported) "Hardware acceleration available" else "Hardware acceleration not supported",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isHardwareSupported) MaterialTheme.colorScheme.primary 
+                                   else MaterialTheme.colorScheme.error
+                        )
+                    }
+                    Switch(
+                        checked = attackConfig.enableGpuAcceleration,
+                        onCheckedChange = viewModel::updateGpuAcceleration,
+                        enabled = isHardwareSupported
+                    )
+                }
+                
+                // Hardware Acceleration Mode
+                if (attackConfig.enableGpuAcceleration && isHardwareSupported) {
+                    Text(
+                        text = "Acceleration Mode",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    Column {
+                        HardwareAcceleration.values().forEach { mode ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .selectable(
+                                        selected = attackConfig.hardwareAcceleration == mode,
+                                        onClick = { viewModel.updateHardwareAcceleration(mode) }
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = attackConfig.hardwareAcceleration == mode,
+                                    onClick = { viewModel.updateHardwareAcceleration(mode) }
+                                )
+                                Column(
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    Text(
+                                        text = when (mode) {
+                                            HardwareAcceleration.CPU_ONLY -> "CPU Only"
+                                            HardwareAcceleration.GPU_ASSISTED -> "GPU Assisted"
+                                            HardwareAcceleration.HYBRID_MODE -> "Hybrid Mode"
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = when (mode) {
+                                            HardwareAcceleration.CPU_ONLY -> "Use CPU cores only for processing"
+                                            HardwareAcceleration.GPU_ASSISTED -> "Leverage GPU for parallel computation"
+                                            HardwareAcceleration.HYBRID_MODE -> "Balance CPU and GPU workload"
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Current GPU Information
+                if (gpuInfo != null) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text(
+                        text = "Current GPU Information",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    InfoRow("GPU Renderer", gpuInfo.renderer)
+                    InfoRow("GPU Vendor", gpuInfo.vendor)
+                    InfoRow("Chipset", gpuInfo.chipset)
+                    InfoRow("Vulkan Support", if (gpuInfo.isVulkanSupported) "Yes" else "No")
+                    InfoRow("Compute Units", "${gpuInfo.supportedComputeUnits}")
+                }
+            }
+        }
+        
         // Threading Settings
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -169,6 +282,52 @@ fun SettingsScreen(
                     )
                     // Note: Chunk size slider would need additional logic
                     // For now, displaying current value
+                }
+            }
+        }
+        
+        // Supported Chipsets Information
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Supported GPU Chipsets",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "The following GPU chipsets support hardware acceleration:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 200.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(supportedChipsets) { chipset ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = chipset,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
