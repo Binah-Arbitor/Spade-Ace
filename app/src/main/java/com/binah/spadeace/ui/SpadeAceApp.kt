@@ -3,7 +3,7 @@ package com.binah.spadeace.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +19,7 @@ import com.binah.spadeace.ui.screens.FileOperationsScreen
 import com.binah.spadeace.ui.screens.SettingsScreen
 import com.binah.spadeace.ui.screens.TextDecryptionScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SpadeAceApp(
     viewModel: MainViewModel,
@@ -36,7 +36,7 @@ fun SpadeAceApp(
             title = { 
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.h6
                 )
             },
             actions = {
@@ -47,33 +47,33 @@ fun SpadeAceApp(
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            backgroundColor = MaterialTheme.colors.primarySurface,
+            contentColor = MaterialTheme.colors.onSurface
         )
         
-        // Navigation Tabs
-        NavigationBar {
-            NavigationBarItem(
+        // Navigation Tabs using BottomNavigation for Material2
+        BottomNavigation(
+            backgroundColor = MaterialTheme.colors.primarySurface
+        ) {
+            BottomNavigationItem(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },
                 icon = { Icon(Icons.Default.Security, contentDescription = null) },
                 label = { Text(stringResource(R.string.decryption_attack)) }
             )
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
                 icon = { Icon(Icons.Default.TextFields, contentDescription = null) },
                 label = { Text("Text Decryption") }
             )
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = selectedTab == 2,
                 onClick = { selectedTab = 2 },
                 icon = { Icon(Icons.Default.Folder, contentDescription = null) },
                 label = { Text(stringResource(R.string.file_operations)) }
             )
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = selectedTab == 3,
                 onClick = { selectedTab = 3 },
                 icon = { Icon(Icons.Default.Settings, contentDescription = null) },
