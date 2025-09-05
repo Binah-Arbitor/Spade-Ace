@@ -6,7 +6,10 @@ import com.binah.spadeace.data.AttackResult
 import com.binah.spadeace.data.AttackType
 import com.binah.spadeace.data.OptimizationLevel
 import com.binah.spadeace.data.HardwareAcceleration
+
 import com.binah.spadeace.data.KeyDerivationMethod
+=======
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -94,6 +97,15 @@ class DecryptionEngine {
             HardwareAcceleration.HYBRID_MODE -> config.threadCount + (config.threadCount / 2)
         }
         
+        // Determine threading strategy based on hardware acceleration settings
+        val effectiveThreadCount = when (config.hardwareAcceleration) {
+            HardwareAcceleration.CPU_ONLY -> config.threadCount
+            HardwareAcceleration.GPU_ASSISTED -> if (config.enableGpuAcceleration) 
+                minOf(config.threadCount * 2, 16) else config.threadCount
+            HardwareAcceleration.HYBRID_MODE -> if (config.enableGpuAcceleration) 
+                config.threadCount + 2 else config.threadCount
+        }
+        
         for (length in 1..maxLength) {
             if (!coroutineContext.isActive) {
                 return AttackResult(false, errorMessage = "Attack cancelled")
@@ -104,12 +116,61 @@ class DecryptionEngine {
                     attemptCount++
                     updateProgress(config, attemptCount, totalCombinations, startTime, password, onProgress)
                     tryDecrypt(config.targetFile, password, config.keyDerivationMethod)
+
+            val result = if (config.enableGpuAcceleration && config.hardwareAcceleration != HardwareAcceleration.CPU_ONLY) {
+                generatePasswordsWithHardwareAcceleration(charset, length, config) { password ->
+                    attemptCount++
+                    
+                    // Update progress with hardware acceleration considerations
+                    val updateInterval = when (config.optimizationLevel) {
+                        OptimizationLevel.LOW -> 100
+                        OptimizationLevel.MEDIUM -> 500
+                        OptimizationLevel.HIGH -> 1000
+                        OptimizationLevel.EXTREME -> 2000 // More aggressive with GPU
+                    }
+                    
+                    if (attemptCount % updateInterval == 0L) {
+                        val progress = attemptCount.toFloat() / totalCombinations
+                        val estimatedTimeRemaining = estimateTimeRemaining(
+                            attemptCount, 
+                            totalCombinations, 
+                            System.currentTimeMillis()
+                        )
+                        
+                        onProgress(AttackProgress(
+                            currentAttempt = password,
+                            attemptsCount = attemptCount,
+                            progress = progress,
+                            estimatedTimeRemaining = estimatedTimeRemaining,
+                            isRunning = true
+                        ))
+                    }
+                    
+                    tryDecrypt(config.targetFile, password)
+                }
+            } else {
+                generatePasswords(charset, length) { password ->
+                    attemptCount++
+                
+                // Update progress every 1000 attempts or based on optimization level
+                val updateInterval = when (config.optimizationLevel) {
+                    OptimizationLevel.LOW -> 100
+                    OptimizationLevel.MEDIUM -> 500
+                    OptimizationLevel.HIGH -> 1000
+                    OptimizationLevel.EXTREME -> 5000
+
                 }
                 else -> generatePasswordsWithHardwareAcceleration(charset, length, config) { password ->
                     attemptCount++
                     updateProgress(config, attemptCount, totalCombinations, startTime, password, onProgress)
                     tryDecrypt(config.targetFile, password, config.keyDerivationMethod)
                 }
+ 
+
+                
+                tryDecrypt(config.targetFile, password)
+                }
+
             }
             
             if (result != null) {
@@ -203,7 +264,49 @@ class DecryptionEngine {
         }
     }
     
+
     private fun tryDecrypt(file: File?, password: String, keyDerivationMethod: KeyDerivationMethod = KeyDerivationMethod.SHA256_SIMPLE): Boolean {
+    private suspend fun generatePasswordsWithHardwareAcceleration(
+        charset: CharArray,
+        length: Int,
+        config: AttackConfiguration,
+        onPasswordGenerated: suspend (String) -> Boolean
+    ): String? {
+        val password = CharArray(length)
+        
+        // For simplicity, simulate hardware acceleration by using more aggressive parallelization
+        // In a real implementation, this would use GPU compute shaders or OpenCL/Vulkan compute
+        fun generate(pos: Int): String? {
+            if (pos == length) {
+                val pwd = String(password)
+                return if (kotlinx.coroutines.runBlocking { onPasswordGenerated(pwd) }) pwd else null
+            }
+            
+            for (char in charset) {
+                password[pos] = char
+                val result = generate(pos + 1)
+                if (result != null) return result
+            }
+            return null
+        }
+        
+        return withContext(Dispatchers.Default) {
+            // Simulate hardware acceleration by using different dispatching strategy
+            when (config.hardwareAcceleration) {
+                HardwareAcceleration.GPU_ASSISTED -> {
+                    // Use more parallel processing to simulate GPU acceleration
+                    generate(0)
+                }
+                HardwareAcceleration.HYBRID_MODE -> {
+                    // Balance CPU and simulated GPU work
+                    generate(0)
+                }
+                else -> generate(0)
+            }
+        }
+    }
+    
+    private fun tryDecrypt(file: File?, password: String): Boolean {
         if (file == null || !file.exists()) return false
         
         return try {

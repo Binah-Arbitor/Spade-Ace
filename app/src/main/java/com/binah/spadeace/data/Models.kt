@@ -20,6 +20,7 @@ data class AttackConfiguration(
     val enableSmartPatterns: Boolean = true,
     val commonPasswordsFirst: Boolean = true,
     val skipWeakCombinations: Boolean = false
+    val enableGpuAcceleration: Boolean = false
 )
 
 enum class AttackType {
@@ -55,6 +56,7 @@ enum class KeyDerivationMethod {
 
 data class GpuInfo(
     val name: String = "Unknown",
+data class GpuInfo(
     val renderer: String = "Unknown",
     val vendor: String = "Unknown", 
     val version: String = "Unknown",
