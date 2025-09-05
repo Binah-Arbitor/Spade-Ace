@@ -64,12 +64,12 @@ build_with_retry() {
         echo "🔨 Building $build_type APK (attempt $attempt/$max_attempts)..."
         
         if [ "$build_type" = "debug" ]; then
-            if ./gradlew assembleDebug --stacktrace --no-daemon; then
+            if ./gradlew assembleDebug $GRADLE_OFFLINE --stacktrace --no-daemon; then
                 echo "✅ Debug APK built successfully"
                 return 0
             fi
         elif [ "$build_type" = "release" ]; then
-            if ./gradlew assembleRelease --stacktrace --no-daemon; then
+            if ./gradlew assembleRelease $GRADLE_OFFLINE --stacktrace --no-daemon; then
                 echo "✅ Release APK built successfully"
                 return 0
             fi
@@ -138,12 +138,25 @@ main() {
     # Check connectivity
     if ! check_connectivity; then
         echo "⚠️ Network connectivity issues detected"
-        echo "Attempting offline build..."
+        echo "Attempting offline build with cached dependencies..."
+        echo "If this fails, please use the Ultra-Stable or Offline APK Builder workflows"
+        
+        # Try to use cached dependencies if available
+        if [ -d "$HOME/.gradle/caches" ]; then
+            echo "✅ Gradle cache found, attempting offline build"
+            export GRADLE_OFFLINE="--offline"
+        else
+            echo "❌ No Gradle cache found, build may fail"
+            export GRADLE_OFFLINE=""
+        fi
+    else
+        echo "✅ Network connectivity looks good"
+        export GRADLE_OFFLINE=""
     fi
     
     # Clean first
     echo "🧹 Cleaning project..."
-    ./gradlew clean --no-daemon || echo "Clean failed, continuing..."
+    ./gradlew clean $GRADLE_OFFLINE --no-daemon || echo "Clean failed, continuing..."
     
     # Build based on type
     if [ "$build_type" = "debug" ] || [ "$build_type" = "both" ]; then

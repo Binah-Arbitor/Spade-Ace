@@ -58,11 +58,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
         freeCompilerArgs += [
             '-opt-in=androidx.compose.material3.ExperimentalMaterial3Api',
             '-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi'
@@ -73,7 +73,7 @@ android {
         viewBinding true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.5'
+        kotlinCompilerExtensionVersion '1.5.8'
     }
     packagingOptions {
         resources {

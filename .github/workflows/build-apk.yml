@@ -17,27 +17,39 @@ on:
           - release
           - both
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2
+  JAVA_VERSION: '17'
+
 jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          build-tools: 34.0.0
+
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+            .gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
@@ -45,16 +57,63 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Validate dependencies with retry
+        run: |
+          for i in {1..3}; do
+            echo "Dependency validation attempt $i/3"
+            if ./gradlew dependencies --no-daemon --stacktrace; then
+              echo "Dependencies validated successfully"
+              break
+            else
+              if [ $i -eq 3 ]; then
+                echo "Failed to validate dependencies after 3 attempts"
+                exit 1
+              fi
+              echo "Retrying in 30 seconds..."
+              sleep 30
+            fi
+          done
+
       - name: Clean project
-        run: ./gradlew clean
+        run: ./gradlew clean --no-daemon
 
       - name: Build debug APK
         if: ${{ github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == 'both' || github.event.inputs.build_type == '' }}
-        run: ./gradlew assembleDebug
+        run: |
+          for i in {1..3}; do
+            echo "Debug build attempt $i/3"
+            if ./gradlew assembleDebug --no-daemon --stacktrace; then
+              echo "Debug APK built successfully"
+              break
+            else
+              if [ $i -eq 3 ]; then
+                echo "Failed to build debug APK after 3 attempts"
+                exit 1
+              fi
+              echo "Cleaning and retrying in 60 seconds..."
+              ./gradlew clean --no-daemon || true
+              sleep 60
+            fi
+          done
 
       - name: Build release APK
         if: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == 'both' || github.event.inputs.build_type == '' }}
-        run: ./gradlew assembleRelease
+        run: |
+          for i in {1..3}; do
+            echo "Release build attempt $i/3"
+            if ./gradlew assembleRelease --no-daemon --stacktrace; then
+              echo "Release APK built successfully"
+              break
+            else
+              if [ $i -eq 3 ]; then
+                echo "Failed to build release APK after 3 attempts"
+                exit 1
+              fi
+              echo "Cleaning and retrying in 60 seconds..."
+              ./gradlew clean --no-daemon || true
+              sleep 60
+            fi
+          done
 
       - name: Get version info
         id: version
@@ -66,18 +125,43 @@ jobs:
 
       - name: Rename APK files
         run: |
+          BUILD_TIME=$(date +%Y%m%d_%H%M)
+          COMMIT_SHA=${GITHUB_SHA:0:7}
+          
           if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SpadeAce-${{ steps.version.outputs.version_name }}-debug.apk
+            mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SpadeAce-v${{ steps.version.outputs.version_name }}-${BUILD_TIME}-${COMMIT_SHA}-debug.apk
           fi
           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-            mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SpadeAce-${{ steps.version.outputs.version_name }}-release.apk
+            mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SpadeAce-v${{ steps.version.outputs.version_name }}-${BUILD_TIME}-${COMMIT_SHA}-release.apk
           fi
+
+      - name: Verify APK integrity
+        run: |
+          echo "Verifying APK integrity..."
+          for apk in app/build/outputs/apk/**/*.apk; do
+            if [ -f "$apk" ]; then
+              echo "Checking: $(basename $apk)"
+              SIZE=$(stat -c%s "$apk" 2>/dev/null || echo "0")
+              if [ "$SIZE" -lt 1000000 ]; then
+                echo "Warning: APK size is only ${SIZE} bytes"
+              else
+                echo "APK size: ${SIZE} bytes - OK"
+              fi
+              
+              if file "$apk" | grep -q "Zip archive"; then
+                echo "APK is valid ZIP archive - OK"
+              else
+                echo "Error: APK is not a valid ZIP archive"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Upload debug APK
         if: ${{ always() && hashFiles('app/build/outputs/apk/debug/*.apk') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: SpadeAce-Debug-APK
+          name: SpadeAce-Debug-APK-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
@@ -85,7 +169,7 @@ jobs:
         if: ${{ always() && hashFiles('app/build/outputs/apk/release/*.apk') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: SpadeAce-Release-APK
+          name: SpadeAce-Release-APK-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
@@ -93,30 +177,34 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-reports
-          path: app/build/reports/
+          name: build-reports-${{ github.run_number }}
+          path: |
+            app/build/reports/
+            app/build/outputs/logs/
           retention-days: 7
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+            .gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
@@ -125,36 +213,38 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --continue
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ github.run_number }}
           path: app/build/test-results/
           retention-days: 7
 
   lint:
     name: Run Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+            .gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
@@ -163,12 +253,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run lint
-        run: ./gradlew lintDebug
+        run: ./gradlew lintDebug --no-daemon --stacktrace --continue
 
       - name: Upload lint results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lint-results
+          name: lint-results-${{ github.run_number }}
           path: app/build/reports/lint-results-debug.html
           retention-days: 7
