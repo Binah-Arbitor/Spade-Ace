@@ -134,7 +134,7 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Hardware Acceleration",
+                    text = stringResource(R.string.hardware_acceleration),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -147,12 +147,13 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Enable GPU Acceleration",
+                            text = stringResource(R.string.enable_gpu_acceleration),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = if (isHardwareSupported) "Hardware acceleration available" else "Hardware acceleration not supported",
+                            text = if (isHardwareSupported) stringResource(R.string.gpu_acceleration_available) 
+                                   else stringResource(R.string.gpu_acceleration_not_supported),
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isHardwareSupported) MaterialTheme.colorScheme.primary 
                                    else MaterialTheme.colorScheme.error
@@ -168,7 +169,7 @@ fun SettingsScreen(
                 // Hardware Acceleration Mode
                 if (attackConfig.enableGpuAcceleration && isHardwareSupported) {
                     Text(
-                        text = "Acceleration Mode",
+                        text = stringResource(R.string.acceleration_mode),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
@@ -193,9 +194,9 @@ fun SettingsScreen(
                                 ) {
                                     Text(
                                         text = when (mode) {
-                                            HardwareAcceleration.CPU_ONLY -> "CPU Only"
-                                            HardwareAcceleration.GPU_ASSISTED -> "GPU Assisted"
-                                            HardwareAcceleration.HYBRID_MODE -> "Hybrid Mode"
+                                            HardwareAcceleration.CPU_ONLY -> stringResource(R.string.cpu_only)
+                                            HardwareAcceleration.GPU_ASSISTED -> stringResource(R.string.gpu_assisted)
+                                            HardwareAcceleration.HYBRID_MODE -> stringResource(R.string.hybrid_mode)
                                         },
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium
@@ -217,9 +218,9 @@ fun SettingsScreen(
                 
                 // Current GPU Information
                 if (gpuInfo != null) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
                     Text(
-                        text = "Current GPU Information",
+                        text = stringResource(R.string.current_gpu_info),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
@@ -295,12 +296,12 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Supported GPU Chipsets",
+                    text = stringResource(R.string.supported_chipsets),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "The following GPU chipsets support hardware acceleration:",
+                    text = stringResource(R.string.chipset_support_description),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp)
