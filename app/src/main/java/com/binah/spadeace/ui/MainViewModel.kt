@@ -32,6 +32,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _gpuInfo = MutableStateFlow<GpuInfo?>(null)
     val gpuInfo: StateFlow<GpuInfo?> = _gpuInfo.asStateFlow()
     
+    private val _encryptionAnalysis = MutableStateFlow<EncryptionAnalysis?>(null)
+    val encryptionAnalysis: StateFlow<EncryptionAnalysis?> = _encryptionAnalysis.asStateFlow()
+    
     init {
         // Detect GPU info on initialization
         viewModelScope.launch {
@@ -140,6 +143,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun clearResult() {
         _attackResult.value = null
         _attackProgress.value = AttackProgress()
+    }
+    
+    fun analyzeFile() {
+        val file = _attackConfig.value.targetFile
+        viewModelScope.launch {
+            val analysis = decryptionEngine.analyzeFile(file)
+            _encryptionAnalysis.value = analysis
+        }
+    }
+    
+    fun clearAnalysis() {
+        _encryptionAnalysis.value = null
     }
     
     override fun onCleared() {
