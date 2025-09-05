@@ -63,20 +63,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _attackConfig.value = _attackConfig.value.copy(optimizationLevel = level)
     }
     
-    fun startAttack() {
-        // Implement attack logic - for safety, just set running state for now
-        _isAttackRunning.value = true
-        _attackProgress.value = _attackProgress.value.copy(isRunning = true)
-    }
-    
-    fun updateTargetFile(file: File) {
-        _attackConfig.value = _attackConfig.value.copy(targetFile = file)
-    }
-    
-    fun updateAttackType(type: AttackType) {
-        _attackConfig.value = _attackConfig.value.copy(attackType = type)
-    }
-    
     fun updateMaxPasswordLength(length: Int) {
         _attackConfig.value = _attackConfig.value.copy(maxPasswordLength = length)
     }
@@ -91,10 +77,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun updateThreadCount(count: Int) {
         _attackConfig.value = _attackConfig.value.copy(threadCount = count)
-    }
-    
-    fun updateOptimizationLevel(level: OptimizationLevel) {
-        _attackConfig.value = _attackConfig.value.copy(optimizationLevel = level)
     }
     
     fun updateHardwareAcceleration(acceleration: HardwareAcceleration) {
@@ -115,8 +97,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun updateRuleFile(file: File?) {
         _attackConfig.value = _attackConfig.value.copy(ruleFile = file)
+    }
 
-      fun updateGpuAcceleration(enabled: Boolean) {
+    fun updateGpuAcceleration(enabled: Boolean) {
         _attackConfig.value = _attackConfig.value.copy(enableGpuAcceleration = enabled)
     }
     
@@ -126,7 +109,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun isHardwareAccelerationSupported(): Boolean {
         return gpuDetector.isHardwareAccelerationSupported()
-
     }
     
     fun startAttack() {
