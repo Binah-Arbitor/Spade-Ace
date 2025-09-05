@@ -1,7 +1,6 @@
 # Spade Ace - 고성능 복호화 공격 도구
 
-[![Build APK](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/build-apk.yml)
-[![Release Build](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release-build.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release-build.yml)
+[![APK Builder](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/apk-builder.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/apk-builder.yml)
 
 **Spade Ace**는 코틀린 기반의 안드로이드 애플리케이션으로, 파일 및 디스크 복호화 공격을 위한 최적화된 도구입니다. 사용하기 쉬운 알고리즘과 다양한 조정 옵션을 제공하며, Android 21+를 대상으로 성능에 집중한 깔끔한 UI를 갖추고 있습니다.
 
@@ -71,17 +70,17 @@
 
 ### 빌드 방법
 
-#### 🚀 안정적인 자동 빌드 (권장)
-이 프로젝트는 다양한 상황에 대응하는 **4가지 안정적인 APK 빌더**를 제공합니다:
+#### 🚀 간단한 APK 빌드 (권장)
+이 프로젝트는 **단일 통합 APK 빌더**를 제공합니다:
 
-1. **🚀 Stable APK Builder** - 일반적인 프로덕션 빌드 (권장)
-2. **🔧 Ultra-Stable APK Builder** - 최대 안정성과 네트워크 진단
-3. **🔄 Fallback APK Builder** - 메인 빌더 실패 시 백업
-4. **🌐 Offline APK Builder** - 네트워크 제한 환경용
+**APK Builder** - 깔끔하고 효율적인 통합 빌더
+- 간단한 설정과 빠른 빌드
+- 디버그/릴리즈 APK 빌드 지원
+- 안정적이고 유지보수가 쉬운 구조
 
 **사용 방법**:
 - [GitHub Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions) 페이지로 이동
-- 원하는 워크플로 선택 후 "Run workflow" 클릭
+- "APK Builder" 워크플로 선택 후 "Run workflow" 클릭
 - 빌드 타입 선택 (debug/release/both)
 
 **다운로드**:
@@ -114,8 +113,8 @@ cd Spade-Ace
 ```
 
 **문제 해결**:
-- 빌드 실패 시 `Ultra-Stable APK Builder` 워크플로 사용
-- 네트워크 문제 시 `Offline APK Builder` 사용
+- 빌드 실패 시 Actions 탭에서 로그 확인
+- 캐시 문제 시 Gradle 캐시 삭제 후 재실행
 - 자세한 가이드: [APK_BUILDER_GUIDE.md](APK_BUILDER_GUIDE.md)
 
 ### 사용법
