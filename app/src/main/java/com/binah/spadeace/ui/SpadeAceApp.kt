@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.compose.ui.platform.LocalContext
 import com.binah.spadeace.R
 import com.binah.spadeace.ui.screens.DecryptionScreen
 import com.binah.spadeace.ui.screens.FileOperationsScreen
@@ -20,7 +22,11 @@ import com.binah.spadeace.ui.screens.SettingsScreen
 @Composable
 fun SpadeAceApp(
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = viewModel()
+    viewModel: MainViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
+            LocalContext.current.applicationContext as android.app.Application
+        )
+    )
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val context = LocalContext.current
