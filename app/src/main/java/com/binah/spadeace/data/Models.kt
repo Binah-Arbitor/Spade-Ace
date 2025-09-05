@@ -20,7 +20,6 @@ data class AttackConfiguration(
     val enableSmartPatterns: Boolean = true,
     val commonPasswordsFirst: Boolean = true,
     val skipWeakCombinations: Boolean = false
-    val enableGpuAcceleration: Boolean = false
 )
 
 enum class AttackType {
@@ -56,7 +55,6 @@ enum class KeyDerivationMethod {
 
 data class GpuInfo(
     val name: String = "Unknown",
-data class GpuInfo(
     val renderer: String = "Unknown",
     val vendor: String = "Unknown", 
     val version: String = "Unknown",
@@ -80,4 +78,16 @@ data class AttackProgress(
     val progress: Float = 0f,
     val estimatedTimeRemaining: Long = 0,
     val isRunning: Boolean = false
+)
+
+data class EncryptionAnalysis(
+    val possibleAlgorithms: List<String> = emptyList(),
+    val possibleModes: List<String> = emptyList(),
+    val possiblePaddings: List<String> = emptyList(),
+    val fileSize: Long = 0,
+    val blockSizeAlignment: Int = 0,
+    val hasFileSignature: Boolean = false,
+    val detectedFormat: String? = null,
+    val confidence: Float = 0f,
+    val analysisNotes: List<String> = emptyList()
 )

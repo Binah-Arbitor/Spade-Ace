@@ -6,7 +6,7 @@ import com.binah.spadeace.data.AttackResult
 import com.binah.spadeace.data.AttackType
 import com.binah.spadeace.data.OptimizationLevel
 import com.binah.spadeace.data.HardwareAcceleration
-
+import com.binah.spadeace.data.EncryptionAnalysis
 import com.binah.spadeace.data.KeyDerivationMethod
 =======
 
@@ -842,5 +842,141 @@ class DecryptionEngine {
         val avgTimePerAttempt = elapsedTime.toDouble() / currentAttempts
         val remainingAttempts = totalCombinations - currentAttempts
         return (remainingAttempts * avgTimePerAttempt).toLong()
+    }
+    
+    /**
+     * Analyzes an encrypted file to infer possible encryption methods and padding
+     */
+    fun analyzeFile(file: File?): EncryptionAnalysis {
+        if (file == null || !file.exists()) {
+            return EncryptionAnalysis(
+                analysisNotes = listOf("File not found or inaccessible")
+            )
+        }
+        
+        val fileSize = file.length()
+        val analysisNotes = mutableListOf<String>()
+        val possibleAlgorithms = mutableListOf<String>()
+        val possibleModes = mutableListOf<String>()
+        val possiblePaddings = mutableListOf<String>()
+        
+        // Read first few bytes for signature analysis
+        val headerBytes = ByteArray(minOf(1024, fileSize.toInt()))
+        try {
+            FileInputStream(file).use { fis ->
+                fis.read(headerBytes)
+            }
+        } catch (e: Exception) {
+            return EncryptionAnalysis(
+                fileSize = fileSize,
+                analysisNotes = listOf("Could not read file: ${e.message}")
+            )
+        }
+        
+        // Analyze file size for block alignment
+        val blockSizeAlignment = analyzeBlockAlignment(fileSize)
+        analysisNotes.add("File size: $fileSize bytes")
+        
+        // Check for common encrypted file signatures
+        val detectedFormat = detectFileFormat(headerBytes)
+        
+        // Analyze block size alignment to suggest algorithms
+        when (blockSizeAlignment) {
+            16 -> {
+                possibleAlgorithms.addAll(listOf("AES", "Twofish", "Serpent", "CAST6", "Camellia"))
+                analysisNotes.add("16-byte alignment suggests AES, Twofish, Serpent, CAST6, or Camellia")
+            }
+            8 -> {
+                possibleAlgorithms.addAll(listOf("DES", "3DES", "Blowfish", "CAST5"))
+                analysisNotes.add("8-byte alignment suggests DES, 3DES, Blowfish, or CAST5")
+            }
+            else -> {
+                possibleAlgorithms.addAll(listOf("RC4", "RC5", "RC6")) // Stream ciphers or variable block
+                analysisNotes.add("No clear block alignment - might be stream cipher or custom implementation")
+            }
+        }
+        
+        // Suggest modes based on file size patterns
+        if (fileSize % blockSizeAlignment == 0 && blockSizeAlignment > 0) {
+            possibleModes.addAll(listOf("ECB", "CBC"))
+            possiblePaddings.addAll(listOf("PKCS5Padding", "NoPadding"))
+            analysisNotes.add("Perfect block alignment suggests ECB or CBC mode")
+        } else {
+            possibleModes.addAll(listOf("CFB", "OFB", "CTR", "GCM"))
+            possiblePaddings.add("NoPadding")
+            analysisNotes.add("Non-aligned size suggests stream mode (CFB, OFB, CTR) or authenticated mode (GCM)")
+        }
+        
+        // Check entropy patterns (simplified)
+        val entropy = calculateSimpleEntropy(headerBytes)
+        if (entropy < 7.0) {
+            analysisNotes.add("Lower entropy detected - file might not be encrypted or uses weak encryption")
+        } else {
+            analysisNotes.add("High entropy detected - consistent with encrypted data")
+        }
+        
+        // Calculate confidence based on analysis
+        var confidence = 0.5f
+        if (blockSizeAlignment > 0) confidence += 0.2f
+        if (entropy >= 7.0) confidence += 0.2f
+        if (detectedFormat != null) confidence += 0.1f
+        
+        return EncryptionAnalysis(
+            possibleAlgorithms = possibleAlgorithms,
+            possibleModes = possibleModes,
+            possiblePaddings = possiblePaddings,
+            fileSize = fileSize,
+            blockSizeAlignment = blockSizeAlignment,
+            hasFileSignature = detectedFormat != null,
+            detectedFormat = detectedFormat,
+            confidence = confidence,
+            analysisNotes = analysisNotes
+        )
+    }
+    
+    private fun analyzeBlockAlignment(fileSize: Long): Int {
+        return when {
+            fileSize % 16 == 0L -> 16  // AES, Twofish, Serpent
+            fileSize % 8 == 0L -> 8    // DES, 3DES, Blowfish
+            else -> 0  // No clear alignment or stream cipher
+        }
+    }
+    
+    private fun detectFileFormat(headerBytes: ByteArray): String? {
+        if (headerBytes.size < 16) return null
+        
+        // Check for common encrypted file signatures
+        return when {
+            // PGP encrypted file
+            headerBytes[0] == 0x85.toByte() -> "PGP Encrypted"
+            // ZIP with encryption
+            headerBytes[0] == 0x50.toByte() && headerBytes[1] == 0x4B.toByte() -> "Encrypted ZIP"
+            // 7z with encryption  
+            headerBytes.take(6).toByteArray().contentEquals("7z\u00BC\u00AF'\u001C".toByteArray()) -> "Encrypted 7Z"
+            // RAR with encryption
+            headerBytes.take(4).toByteArray().contentEquals("Rar!".toByteArray()) -> "Encrypted RAR"
+            else -> null
+        }
+    }
+    
+    private fun calculateSimpleEntropy(data: ByteArray): Double {
+        if (data.isEmpty()) return 0.0
+        
+        val frequencies = IntArray(256)
+        for (byte in data) {
+            frequencies[byte.toInt() and 0xFF]++
+        }
+        
+        var entropy = 0.0
+        val length = data.size.toDouble()
+        
+        for (freq in frequencies) {
+            if (freq > 0) {
+                val probability = freq / length
+                entropy -= probability * (kotlin.math.ln(probability) / kotlin.math.ln(2.0))
+            }
+        }
+        
+        return entropy
     }
 }

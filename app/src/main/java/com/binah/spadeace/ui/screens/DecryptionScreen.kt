@@ -36,6 +36,7 @@ fun DecryptionScreen(
     val attackProgress by viewModel.attackProgress.collectAsState()
     val attackResult by viewModel.attackResult.collectAsState()
     val isAttackRunning by viewModel.isAttackRunning.collectAsState()
+    val encryptionAnalysis by viewModel.encryptionAnalysis.collectAsState()
     
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -125,6 +126,24 @@ fun DecryptionScreen(
                         }
                     }
                 )
+                
+                // Analyze File Button
+                if (attackConfig.targetFile != null) {
+                    Button(
+                        onClick = { 
+                            viewModel.analyzeFile() 
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isAttackRunning
+                    ) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text("Analyze File Encryption")
+                    }
+                }
             }
         }
         
@@ -421,6 +440,66 @@ fun DecryptionScreen(
                     
                     if (attackProgress.estimatedTimeRemaining > 0) {
                         Text("Estimated time remaining: ${formatTime(attackProgress.estimatedTimeRemaining)}")
+                    }
+                }
+            }
+        }
+        
+        // Encryption Analysis Results
+        encryptionAnalysis?.let { analysis ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "File Analysis Results",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Text(
+                        text = "Confidence: ${(analysis.confidence * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    if (analysis.possibleAlgorithms.isNotEmpty()) {
+                        Text("Possible Algorithms: ${analysis.possibleAlgorithms.joinToString(", ")}")
+                    }
+                    
+                    if (analysis.possibleModes.isNotEmpty()) {
+                        Text("Possible Modes: ${analysis.possibleModes.joinToString(", ")}")
+                    }
+                    
+                    if (analysis.possiblePaddings.isNotEmpty()) {
+                        Text("Possible Paddings: ${analysis.possiblePaddings.joinToString(", ")}")
+                    }
+                    
+                    analysis.detectedFormat?.let { format ->
+                        Text("Detected Format: $format")
+                    }
+                    
+                    if (analysis.analysisNotes.isNotEmpty()) {
+                        Text(
+                            text = "Analysis Notes:",
+                            fontWeight = FontWeight.Medium
+                        )
+                        analysis.analysisNotes.forEach { note ->
+                            Text("• $note", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    
+                    Button(
+                        onClick = { viewModel.clearAnalysis() },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Clear")
                     }
                 }
             }
