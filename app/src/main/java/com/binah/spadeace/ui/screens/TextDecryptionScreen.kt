@@ -9,7 +9,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +26,7 @@ import com.binah.spadeace.data.AttackType
 import com.binah.spadeace.ui.MainViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TextDecryptionScreen(
     viewModel: MainViewModel,
@@ -72,7 +72,7 @@ fun TextDecryptionScreen(
         // Header
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -83,19 +83,19 @@ fun TextDecryptionScreen(
                     Icon(
                         imageVector = Icons.Default.TextFields,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colors.primary
                     )
                     Text(
                         text = "Text Decryption",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
                 Text(
                     text = "Decrypt text directly or attempt password recovery",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -110,7 +110,7 @@ fun TextDecryptionScreen(
             ) {
                 Text(
                     text = "Input Text",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -167,7 +167,7 @@ fun TextDecryptionScreen(
             ) {
                 Text(
                     text = "Password Options",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -230,7 +230,7 @@ fun TextDecryptionScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    backgroundColor = MaterialTheme.colors.secondary
                 )
             ) {
                 Column(
@@ -239,7 +239,7 @@ fun TextDecryptionScreen(
                 ) {
                     Text(
                         text = "Password Recovery in Progress",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -282,7 +282,7 @@ fun TextDecryptionScreen(
                 ) {
                     Text(
                         text = "Output",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -303,7 +303,7 @@ fun TextDecryptionScreen(
                         .fillMaxWidth()
                         .height(120.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        backgroundColor = MaterialTheme.colors.surface
                     )
                 ) {
                     SelectionContainer {
@@ -312,13 +312,13 @@ fun TextDecryptionScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(12.dp),
-                            style = MaterialTheme.typography.bodyMedium.copy(
+                            style = MaterialTheme.typography.body1.copy(
                                 fontFamily = FontFamily.Monospace
                             ),
                             color = if (outputText.isEmpty()) 
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                             else 
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                                MaterialTheme.colors.onSurface
                         )
                     }
                 }
@@ -349,11 +349,11 @@ fun TextDecryptionScreen(
                     Text("Select attack method to recover the password:")
                     Text(
                         "• Brute Force: Try all possible combinations",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.body2
                     )
                     Text(
                         "• Dictionary: Use common passwords list", 
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.body2
                     )
                 }
             },

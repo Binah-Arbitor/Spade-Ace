@@ -8,7 +8,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +21,7 @@ import com.binah.spadeace.data.HardwareAcceleration
 import com.binah.spadeace.data.ThemePreferences
 import com.binah.spadeace.ui.MainViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: MainViewModel,
@@ -43,20 +43,20 @@ fun SettingsScreen(
         // Header
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.settings),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Configure performance and optimization settings",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -75,11 +75,11 @@ fun SettingsScreen(
                     Icon(
                         imageVector = Icons.Default.Palette,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colors.primary
                     )
                     Text(
                         text = stringResource(R.string.appearance),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
                     )
@@ -87,7 +87,7 @@ fun SettingsScreen(
                 
                 Text(
                     text = stringResource(R.string.theme_mode),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.subtitle1,
                     fontWeight = FontWeight.Medium
                 )
                 
@@ -115,7 +115,7 @@ fun SettingsScreen(
                             Text(
                                 text = label,
                                 modifier = Modifier.padding(start = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.body1
                             )
                         }
                     }
@@ -133,14 +133,14 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.performance_mode),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
                 // Optimization Level
                 Text(
                     text = stringResource(R.string.optimization_level),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.subtitle1,
                     fontWeight = FontWeight.Medium
                 )
                 
@@ -169,7 +169,7 @@ fun SettingsScreen(
                                         OptimizationLevel.HIGH -> stringResource(R.string.high)
                                         OptimizationLevel.EXTREME -> stringResource(R.string.extreme)
                                     },
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.body1,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
@@ -179,8 +179,8 @@ fun SettingsScreen(
                                         OptimizationLevel.HIGH -> "Maximum performance, higher power usage"
                                         OptimizationLevel.EXTREME -> "Extreme performance, maximum power consumption"
                                     },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MaterialTheme.typography.body2,
+                                    color = MaterialTheme.colors.onSurface
                                 )
                             }
                         }
@@ -199,7 +199,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.hardware_acceleration),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -212,15 +212,15 @@ fun SettingsScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.enable_gpu_acceleration),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.body1,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = if (isHardwareSupported) stringResource(R.string.gpu_acceleration_available) 
                                    else stringResource(R.string.gpu_acceleration_not_supported),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isHardwareSupported) MaterialTheme.colorScheme.primary 
-                                   else MaterialTheme.colorScheme.error
+                            style = MaterialTheme.typography.body2,
+                            color = if (isHardwareSupported) MaterialTheme.colors.primary 
+                                   else MaterialTheme.colors.error
                         )
                     }
                     Switch(
@@ -234,7 +234,7 @@ fun SettingsScreen(
                 if (attackConfig.enableGpuAcceleration && isHardwareSupported) {
                     Text(
                         text = stringResource(R.string.acceleration_mode),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.subtitle1,
                         fontWeight = FontWeight.Medium
                     )
                     
@@ -262,7 +262,7 @@ fun SettingsScreen(
                                             HardwareAcceleration.GPU_ASSISTED -> stringResource(R.string.gpu_assisted)
                                             HardwareAcceleration.HYBRID_MODE -> stringResource(R.string.hybrid_mode)
                                         },
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        style = MaterialTheme.typography.body1,
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
@@ -271,8 +271,8 @@ fun SettingsScreen(
                                             HardwareAcceleration.GPU_ASSISTED -> "Leverage GPU for parallel computation"
                                             HardwareAcceleration.HYBRID_MODE -> "Balance CPU and GPU workload"
                                         },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        style = MaterialTheme.typography.body2,
+                                        color = MaterialTheme.colors.onSurface
                                     )
                                 }
                             }
@@ -285,7 +285,7 @@ fun SettingsScreen(
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     Text(
                         text = stringResource(R.string.current_gpu_info),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.subtitle1,
                         fontWeight = FontWeight.Medium
                     )
                     InfoRow("GPU Renderer", gpuInfo.renderer)
@@ -307,7 +307,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "Threading Configuration",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -315,13 +315,13 @@ fun SettingsScreen(
                 Column {
                     Text(
                         text = "${stringResource(R.string.thread_count)}: ${attackConfig.threadCount}",
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.subtitle1,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = "Available CPU cores: ${Runtime.getRuntime().availableProcessors()}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Slider(
@@ -336,13 +336,13 @@ fun SettingsScreen(
                 Column {
                     Text(
                         text = "${stringResource(R.string.chunk_size)}: ${formatBytes(attackConfig.chunkSize)}",
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.subtitle1,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = "Memory chunk size for file processing",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     // Note: Chunk size slider would need additional logic
@@ -361,13 +361,13 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.supported_chipsets),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = stringResource(R.string.chipset_support_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 
@@ -384,11 +384,11 @@ fun SettingsScreen(
                                 Icons.Default.Check,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colors.primary
                             )
                             Text(
                                 text = chipset,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.body2,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }
@@ -401,7 +401,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                backgroundColor = MaterialTheme.colors.surface
             )
         ) {
             Column(
@@ -414,11 +414,11 @@ fun SettingsScreen(
                     Icon(
                         Icons.Default.Info,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colors.onSurface
                     )
                     Text(
                         text = "Security Notice",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
                     )
@@ -426,8 +426,8 @@ fun SettingsScreen(
                 Text(
                     text = "This tool is designed for educational and authorized penetration testing purposes only. " +
                             "Ensure you have proper authorization before attempting to decrypt any files.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -442,7 +442,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "System Information",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -464,7 +464,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "Actions",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -514,11 +514,11 @@ private fun InfoRow(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.body1
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.body1,
             fontWeight = FontWeight.Medium
         )
     }

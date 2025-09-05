@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +16,7 @@ import com.binah.spadeace.R
 import com.binah.spadeace.ui.MainViewModel
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FileOperationsScreen(
     viewModel: MainViewModel,
@@ -41,20 +41,20 @@ fun FileOperationsScreen(
         // Header
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.file_operations),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Browse and manage encrypted files",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -74,7 +74,7 @@ fun FileOperationsScreen(
                 ) {
                     Text(
                         text = "Current Directory:",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -137,7 +137,7 @@ fun FileOperationsScreen(
             ) {
                 Text(
                     text = "Files (${fileList.size})",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -177,7 +177,7 @@ private fun FileItem(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = 2.dp
     ) {
         Row(
             modifier = Modifier
@@ -194,9 +194,9 @@ private fun FileItem(
                     imageVector = if (file.isDirectory) Icons.Default.Folder else getFileIcon(file),
                     contentDescription = null,
                     tint = if (file.isDirectory) {
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colors.primary
                     } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        MaterialTheme.colors.onSurface
                     }
                 )
                 
@@ -205,15 +205,15 @@ private fun FileItem(
                 ) {
                     Text(
                         text = file.name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.body1,
                         fontWeight = FontWeight.Medium
                     )
                     
                     if (file.isFile) {
                         Text(
                             text = formatFileSize(file.length()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.onSurface
                         )
                     }
                 }
@@ -226,7 +226,7 @@ private fun FileItem(
                     Icon(
                         Icons.Default.ChevronRight,
                         contentDescription = "Select",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colors.onSurface
                     )
                 }
             }

@@ -10,7 +10,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +25,7 @@ import com.binah.spadeace.data.KeyDerivationMethod
 import com.binah.spadeace.ui.MainViewModel
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DecryptionScreen(
     viewModel: MainViewModel,
@@ -74,20 +74,20 @@ fun DecryptionScreen(
         // Header
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.decryption_attack),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "High-performance decryption attack engine",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -102,7 +102,7 @@ fun DecryptionScreen(
             ) {
                 Text(
                     text = stringResource(R.string.file_path),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -157,7 +157,7 @@ fun DecryptionScreen(
             ) {
                 Text(
                     text = stringResource(R.string.attack_type),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -207,7 +207,7 @@ fun DecryptionScreen(
             ) {
                 Text(
                     text = "Attack Configuration",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -322,7 +322,7 @@ fun DecryptionScreen(
                 // Hardware Acceleration Settings
                 Text(
                     text = "Hardware Acceleration",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -351,7 +351,7 @@ fun DecryptionScreen(
                                     HardwareAcceleration.HYBRID_MODE -> "Hybrid Mode"
                                 },
                                 modifier = Modifier.padding(start = 4.dp),
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.body2
                             )
                         }
                     }
@@ -360,7 +360,7 @@ fun DecryptionScreen(
                 // Key Derivation Method
                 Text(
                     text = "Key Derivation Method",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -428,11 +428,11 @@ fun DecryptionScreen(
                         Icon(
                             imageVector = if (isAttackRunning) Icons.Default.PlayArrow else Icons.Default.Pause,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colors.primary
                         )
                         Text(
                             text = stringResource(R.string.progress),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.h6,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -442,22 +442,22 @@ fun DecryptionScreen(
                         LinearProgressIndicator(
                             progress = attackProgress.progress,
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            color = MaterialTheme.colors.primary,
+                            trackColor = MaterialTheme.colors.surface
                         )
                         
                         // Progress percentage
                         Text(
                             text = "${(attackProgress.progress * 100).toInt()}% Complete",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.onSurface,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
                     
                     Divider(
                         modifier = Modifier.padding(vertical = 8.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
+                        color = MaterialTheme.colors.onSurface
                     )
                     
                     // Current attempt with styling
@@ -468,12 +468,12 @@ fun DecryptionScreen(
                             imageVector = Icons.Default.Key,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colors.onSurface
                         )
                         Text(
                             text = "Current: ${attackProgress.currentAttempt}",
                             modifier = Modifier.padding(start = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium.copy(
+                            style = MaterialTheme.typography.body1.copy(
                                 fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
                             )
                         )
@@ -487,12 +487,12 @@ fun DecryptionScreen(
                             imageVector = Icons.Default.Numbers,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colors.onSurface
                         )
                         Text(
                             text = "Attempts: ${formatNumber(attackProgress.attemptsCount)}",
                             modifier = Modifier.padding(start = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.body1
                         )
                     }
                     
@@ -504,13 +504,13 @@ fun DecryptionScreen(
                                 imageVector = Icons.Default.Schedule,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colors.onSurface
                             )
                             Text(
                                 text = "ETA: ${formatTime(attackProgress.estimatedTimeRemaining)}",
                                 modifier = Modifier.padding(start = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.tertiary
+                                style = MaterialTheme.typography.body1,
+                                color = MaterialTheme.colors.secondary
                             )
                         }
                     }
@@ -523,7 +523,7 @@ fun DecryptionScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    backgroundColor = MaterialTheme.colors.secondary
                 )
             ) {
                 Column(
@@ -532,13 +532,13 @@ fun DecryptionScreen(
                 ) {
                     Text(
                         text = "File Analysis Results",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     
                     Text(
                         text = "Confidence: ${(analysis.confidence * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.body1,
                         fontWeight = FontWeight.Medium
                     )
                     
@@ -564,7 +564,7 @@ fun DecryptionScreen(
                             fontWeight = FontWeight.Medium
                         )
                         analysis.analysisNotes.forEach { note ->
-                            Text("• $note", style = MaterialTheme.typography.bodySmall)
+                            Text("• $note", style = MaterialTheme.typography.body2)
                         }
                     }
                     
@@ -583,9 +583,9 @@ fun DecryptionScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = if (result.success) {
-                    CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    CardDefaults.cardColors(backgroundColor = MaterialTheme.colors.primary)
                 } else {
-                    CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                    CardDefaults.cardColors(backgroundColor = MaterialTheme.colors.error)
                 }
             ) {
                 Column(
@@ -594,7 +594,7 @@ fun DecryptionScreen(
                 ) {
                     Text(
                         text = if (result.success) "Success!" else "Failed",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     
