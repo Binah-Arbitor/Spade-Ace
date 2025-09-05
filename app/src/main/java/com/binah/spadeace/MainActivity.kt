@@ -1,61 +1,102 @@
 package com.binah.spadeace
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.binah.spadeace.data.ThemePreferences
+import com.binah.spadeace.databinding.ActivityMainBinding
 import com.binah.spadeace.ui.MainViewModel
-import com.binah.spadeace.ui.SpadeAceApp
-import com.binah.spadeace.ui.theme.SpadeAceTheme
+import com.binah.spadeace.ui.fragments.DecryptionFragment
+import com.binah.spadeace.ui.fragments.FileOperationsFragment
+import com.binah.spadeace.ui.fragments.SettingsFragment
+import com.binah.spadeace.ui.fragments.TextDecryptionFragment
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainViewModel
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         
-        setContent {
-            val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
-            )
-            
-            val isDarkMode by viewModel.isDarkMode.collectAsState()
-            val themeMode by viewModel.themeMode.collectAsState()
-            val isSystemDark = isSystemInDarkTheme()
-            
-            // Update system theme when it changes
-            LaunchedEffect(isSystemDark, themeMode) {
-                if (themeMode == ThemePreferences.THEME_MODE_SYSTEM) {
-                    viewModel.updateSystemTheme(isSystemDark)
-                }
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        viewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[MainViewModel::class.java]
+        
+        setupToolbar()
+        setupViewPager()
+        observeTheme()
+    }
+    
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+    }
+    
+    private fun setupViewPager() {
+        val adapter = MainPagerAdapter(this)
+        binding.viewPager.adapter = adapter
+        
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> getString(R.string.decryption_attack)
+                1 -> "Text Decryption"
+                2 -> getString(R.string.file_operations)  
+                3 -> getString(R.string.settings)
+                else -> ""
             }
-            
-            SpadeAceTheme(darkTheme = isDarkMode) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SpadeAceApp(
-                        viewModel = viewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            tab.setIcon(when (position) {
+                0 -> R.drawable.ic_security_24
+                1 -> R.drawable.ic_text_fields_24
+                2 -> R.drawable.ic_folder_24
+                3 -> R.drawable.ic_settings_24
+                else -> 0
+            })
+        }.attach()
+    }
+    
+    private fun observeTheme() {
+        lifecycleScope.launch {
+            viewModel.themeMode.collect { themeMode ->
+                // Handle theme changes if needed
+                when (themeMode) {
+                    ThemePreferences.THEME_MODE_LIGHT -> {
+                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                    }
+                    ThemePreferences.THEME_MODE_DARK -> {
+                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                    }
+                    else -> {
+                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    }
                 }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    SpadeAceTheme {
-        // Preview removed as it needs ViewModel context
+    
+    private inner class MainPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
+        
+        override fun getItemCount(): Int = 4
+        
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> DecryptionFragment.newInstance()
+                1 -> TextDecryptionFragment.newInstance()
+                2 -> FileOperationsFragment.newInstance()
+                3 -> SettingsFragment.newInstance()
+                else -> throw IllegalArgumentException("Invalid position: $position")
+            }
+        }
     }
 }
