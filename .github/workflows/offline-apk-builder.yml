@@ -23,17 +23,17 @@ jobs:
     
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ☕ Setup JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: 🗂️ Restore Gradle cache
         if: ${{ github.event.inputs.use_cached_deps == 'true' }}
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.gradle/caches
@@ -167,7 +167,7 @@ jobs:
 
       - name: 💾 Save dependencies for future offline builds
         if: env.OFFLINE_BUILD_POSSIBLE == 'false'
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: |
             ~/.gradle/caches
@@ -175,7 +175,7 @@ jobs:
           key: ${{ runner.os }}-gradle-offline-${{ hashFiles('**/*.gradle*') }}
 
       - name: 📤 Upload offline APKs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: SpadeAce-Offline-APKs
