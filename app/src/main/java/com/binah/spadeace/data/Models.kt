@@ -8,14 +8,28 @@ data class AttackConfiguration(
     val maxPasswordLength: Int = 8,
     val characterSet: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     val dictionaryFile: File? = null,
+    val rainbowTableFile: File? = null,
+    val maskPattern: String = "?l?l?l?l?d?d?d?d", // ?l=lowercase, ?u=uppercase, ?d=digit, ?s=special
+    val ruleFile: File? = null,
     val threadCount: Int = Runtime.getRuntime().availableProcessors(),
     val chunkSize: Int = 1024 * 1024, // 1MB chunks
-    val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH
+    val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH,
+    val hardwareAcceleration: HardwareAcceleration = HardwareAcceleration.CPU_ONLY,
+    val enableGpuAcceleration: Boolean = false,
+    val keyDerivationMethod: KeyDerivationMethod = KeyDerivationMethod.SHA256_SIMPLE,
+    val enableSmartPatterns: Boolean = true,
+    val commonPasswordsFirst: Boolean = true,
+    val skipWeakCombinations: Boolean = false
 )
 
 enum class AttackType {
     BRUTE_FORCE,
-    DICTIONARY_ATTACK
+    DICTIONARY_ATTACK,
+    RAINBOW_TABLE,
+    HYBRID_ATTACK,
+    MASK_ATTACK,
+    RULE_BASED_ATTACK,
+    SMART_BRUTE_FORCE
 }
 
 enum class OptimizationLevel {
@@ -24,6 +38,31 @@ enum class OptimizationLevel {
     HIGH,
     EXTREME
 }
+
+enum class HardwareAcceleration {
+    CPU_ONLY,
+    GPU_ASSISTED,
+    HYBRID_MODE
+}
+
+enum class KeyDerivationMethod {
+    SHA256_SIMPLE,
+    PBKDF2,
+    SCRYPT,
+    ARGON2,
+    BCRYPT
+}
+
+data class GpuInfo(
+    val name: String = "Unknown",
+    val renderer: String = "Unknown",
+    val vendor: String = "Unknown", 
+    val version: String = "Unknown",
+    val isVulkanSupported: Boolean = false,
+    val isOpenClSupported: Boolean = false,
+    val chipset: String = "Unknown",
+    val supportedComputeUnits: Int = 0
+)
 
 data class AttackResult(
     val success: Boolean,
