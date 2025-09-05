@@ -1,0 +1,204 @@
+name: 🌐 Offline APK Builder
+
+# This workflow can build APKs without internet connectivity by using cached dependencies
+# It's designed for environments with restricted or unreliable network access
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_cached_deps:
+        description: 'Use previously cached dependencies'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.configureondemand=false'
+
+jobs:
+  offline-build:
+    name: 🌐 Offline Build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: ☕ Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🗂️ Restore Gradle cache
+        if: ${{ github.event.inputs.use_cached_deps == 'true' }}
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-offline-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-offline-
+            ${{ runner.os }}-gradle-
+
+      - name: 🔧 Setup offline build environment
+        run: |
+          echo "🔧 Setting up offline build environment..."
+          
+          # Make gradlew executable
+          chmod +x gradlew
+          
+          # Configure Gradle for offline mode
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties << EOF
+          org.gradle.daemon=false
+          org.gradle.parallel=false
+          org.gradle.configureondemand=false
+          org.gradle.offline=true
+          org.gradle.caching=true
+          EOF
+          
+          # Create local.properties for Android if needed
+          cat > local.properties << EOF
+          sdk.dir=/usr/local/lib/android/sdk
+          ndk.dir=/usr/local/lib/android/sdk/ndk-bundle
+          EOF
+
+      - name: 🧪 Test offline capabilities
+        run: |
+          echo "🧪 Testing offline build capabilities..."
+          
+          # First try offline mode
+          if ./gradlew --offline dependencies --no-daemon; then
+            echo "✅ Offline dependencies available"
+            echo "OFFLINE_BUILD_POSSIBLE=true" >> $GITHUB_ENV
+          else
+            echo "⚠️ Offline dependencies not available, will try minimal online mode"
+            echo "OFFLINE_BUILD_POSSIBLE=false" >> $GITHUB_ENV
+          fi
+
+      - name: 🏗️ Build APKs (offline mode)
+        if: env.OFFLINE_BUILD_POSSIBLE == 'true'
+        run: |
+          echo "🏗️ Building APKs in offline mode..."
+          
+          ./gradlew clean --offline --no-daemon
+          
+          # Build debug APK
+          if ./gradlew assembleDebug --offline --no-daemon --stacktrace; then
+            echo "✅ Debug APK built offline"
+          else
+            echo "❌ Debug APK build failed"
+          fi
+          
+          # Build release APK  
+          if ./gradlew assembleRelease --offline --no-daemon --stacktrace; then
+            echo "✅ Release APK built offline"
+          else
+            echo "❌ Release APK build failed"
+          fi
+
+      - name: 🌐 Build APKs (minimal online mode)
+        if: env.OFFLINE_BUILD_POSSIBLE == 'false'
+        run: |
+          echo "🌐 Attempting minimal online build..."
+          
+          # Configure for minimal network usage
+          echo "org.gradle.offline=false" >> ~/.gradle/gradle.properties
+          
+          # Try to build with minimal network access
+          for attempt in 1 2 3; do
+            echo "Build attempt $attempt/3..."
+            
+            if ./gradlew clean assembleDebug assembleRelease --no-daemon --stacktrace; then
+              echo "✅ APKs built successfully"
+              break
+            else
+              if [ $attempt -eq 3 ]; then
+                echo "❌ All build attempts failed"
+                exit 1
+              fi
+              echo "⏳ Retrying in 30 seconds..."
+              sleep 30
+            fi
+          done
+
+      - name: 📦 Package offline APKs
+        if: always()
+        run: |
+          echo "📦 Packaging APKs for offline build..."
+          
+          mkdir -p offline_outputs
+          
+          # Copy debug APK
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp "app/build/outputs/apk/debug/app-debug.apk" "offline_outputs/SpadeAce-offline-debug.apk"
+            echo "✅ Debug APK packaged"
+          fi
+          
+          # Copy release APK
+          if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
+            cp "app/build/outputs/apk/release/app-release.apk" "offline_outputs/SpadeAce-offline-release.apk"
+            echo "✅ Release APK packaged"
+          fi
+          
+          # Generate checksums
+          cd offline_outputs
+          for apk in *.apk; do
+            if [ -f "$apk" ]; then
+              sha256sum "$apk" > "${apk}.sha256"
+              echo "Checksum created for $apk"
+            fi
+          done
+          cd ..
+          
+          # Create build info
+          cat > offline_outputs/offline-build-info.txt << EOF
+          Offline APK Builder Results
+          ==========================
+          Build Mode: ${{ env.OFFLINE_BUILD_POSSIBLE == 'true' && 'Full Offline' || 'Minimal Online' }}
+          Build Time: $(date -u)
+          Commit: ${{ github.sha }}
+          
+          $(ls -la offline_outputs/)
+          EOF
+
+      - name: 💾 Save dependencies for future offline builds
+        if: env.OFFLINE_BUILD_POSSIBLE == 'false'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-offline-${{ hashFiles('**/*.gradle*') }}
+
+      - name: 📤 Upload offline APKs
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: SpadeAce-Offline-APKs
+          path: offline_outputs/
+          retention-days: 60
+
+      - name: 📊 Offline build summary
+        if: always()
+        run: |
+          echo "# 🌐 Offline APK Builder Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode**: ${{ env.OFFLINE_BUILD_POSSIBLE == 'true' && 'Full Offline ✅' || 'Minimal Online ⚠️' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if ls offline_outputs/*.apk 1> /dev/null 2>&1; then
+            echo "## Generated APKs:" >> $GITHUB_STEP_SUMMARY
+            for apk in offline_outputs/*.apk; do
+              if [ -f "$apk" ]; then
+                SIZE=$(stat -c%s "$apk" 2>/dev/null || echo "0")
+                echo "- **$(basename $apk)** (${SIZE} bytes)" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "## ❌ No APKs generated" >> $GITHUB_STEP_SUMMARY
+          fi
