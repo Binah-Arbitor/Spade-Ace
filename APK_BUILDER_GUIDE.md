@@ -1,40 +1,44 @@
-# 🚀 안정적인 APK 빌더 가이드
+# 🚀 APK 빌더 가이드
 
-이 가이드는 Spade Ace 프로젝트의 안정적인 APK 빌드를 위한 완전한 솔루션을 제공합니다.
+이 가이드는 Spade Ace 프로젝트의 APK 빌드를 위한 완전한 솔루션을 제공합니다.
 
 ## 📋 개요
 
-이 프로젝트에는 다양한 상황에 대응할 수 있는 4가지 APK 빌드 워크플로가 있습니다:
+이 프로젝트에는 다음과 같은 빌드 워크플로가 있습니다:
 
-### 1. 🚀 Stable APK Builder (권장)
-- **파일**: `.github/workflows/stable-apk-builder.yml`
-- **용도**: 일반적인 프로덕션 빌드
-- **특징**: 포괄적인 오류 처리, 재시도 메커니즘, 네트워크 진단
+### 1. 🧪 Android CI
+- **파일**: `.github/workflows/android-ci.yml`
+- **용도**: 지속적 통합 - 코드 테스트 및 린트 검사
+- **트리거**: Push (main, develop 브랜치), Pull Request (main 브랜치)
+- **특징**: 자동 테스트 실행, 코드 품질 검사
 
-### 2. 🔄 Fallback APK Builder
-- **파일**: `.github/workflows/fallback-apk-builder.yml`
-- **용도**: 메인 빌더가 실패할 때의 백업
-- **특징**: 보수적인 접근 방식, 최소한의 의존성
+### 2. 🏗️ Build APK
+- **파일**: `.github/workflows/build-apk.yml`
+- **용도**: APK 파일 빌드 (Debug/Release)
+- **트리거**: 수동 실행, 태그 푸시 (v*)
+- **특징**: 선택적 빌드 타입, 아티팩트 업로드
 
-### 3. 🔧 Ultra-Stable APK Builder
-- **파일**: `.github/workflows/ultra-stable-apk-builder.yml`
-- **용도**: 최대 안정성이 필요한 상황
-- **특징**: 상세한 진단, 네트워크 연결 테스트, 단계별 검증
-
-### 4. 🌐 Offline APK Builder
-- **파일**: `.github/workflows/offline-apk-builder.yml`
-- **용도**: 인터넷 연결이 불안정하거나 제한된 환경
-- **특징**: 캐시된 의존성 사용, 오프라인 빌드 지원
+### 3. 🚀 Release
+- **파일**: `.github/workflows/release.yml`
+- **용도**: GitHub Release 생성 및 APK 배포
+- **트리거**: 태그 푸시 (v*)
+- **특징**: 자동 릴리즈 생성, APK 첨부
 
 ## 🛠️ 사용 방법
 
 ### GitHub Actions에서 실행
 
+#### APK 빌드
 1. **GitHub 저장소의 Actions 탭으로 이동**
-2. **원하는 워크플로 선택**
+2. **"Build APK" 워크플로 선택**
 3. **"Run workflow" 버튼 클릭**
-4. **빌드 타입 선택** (debug, release, both)
+4. **빌드 타입 선택** (debug 또는 release)
 5. **"Run workflow" 클릭하여 실행**
+
+#### 릴리즈 생성
+1. **태그 생성**: `git tag v1.0.0 && git push origin v1.0.0`
+2. **자동으로 Release 워크플로가 실행됩니다**
+3. **GitHub Releases에서 생성된 릴리즈 확인**
 
 ### 로컬에서 실행
 
@@ -62,8 +66,7 @@
 ### 아티팩트 다운로드
 GitHub Actions 실행 후 다음을 다운로드할 수 있습니다:
 - **APK 파일** (debug/release)
-- **체크섬 파일** (.sha256, .md5)
-- **빌드 정보 파일**
+- **GitHub Releases** (태그 푸시 시)
 
 ## ⚠️ 문제 해결
 
@@ -74,26 +77,28 @@ GitHub Actions 실행 후 다음을 다운로드할 수 있습니다:
 Could not GET 'https://dl.google.com/...'
 ```
 **해결책**:
-- **Ultra-Stable APK Builder** 또는 **Offline APK Builder** 사용
-- 재시도 자동 실행됨 (최대 3-5회)
+- GitHub Actions는 자동으로 재시도됩니다
+- 로컬 빌드 시 네트워크 연결 확인
 
 #### 2. 메모리 부족 오류
 ```
 OutOfMemoryError
 ```
 **해결책**:
-- `gradle.properties`에서 메모리 설정 확인
-- **Fallback APK Builder** 사용 (더 적은 메모리 사용)
+- `gradle.properties`에서 메모리 설정 확인:
+  ```properties
+  org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m
+  ```
 
 #### 3. 빌드 시간 초과
 **해결책**:
-- **Offline APK Builder**로 캐시된 의존성 사용
-- 병렬 빌드 비활성화된 **Ultra-Stable APK Builder** 사용
+- Gradle 데몬 사용: `./gradlew --daemon`
+- 병렬 빌드 활성화: `org.gradle.parallel=true`
 
 #### 4. 의존성 해결 실패
 **해결책**:
-- 캐시 클리어 후 재실행
-- **Fallback APK Builder**에서 force_clean 옵션 사용
+- 캐시 클리어: `./gradlew clean`
+- Gradle 래퍼 업데이트: `./gradlew wrapper --gradle-version latest`
 
 ### 로그 확인 방법
 
@@ -157,10 +162,10 @@ GitHub Repository Settings → Secrets에 추가:
 ## 🆘 지원
 
 ### 빌드 실패 시
-1. **가장 안정적인 워크플로 시도**: Ultra-Stable APK Builder
-2. **로그 확인**: 구체적인 오류 메시지 찾기
+1. **Build APK 워크플로 재시도**
+2. **로그 확인**: Actions 탭에서 구체적인 오류 메시지 찾기
 3. **캐시 클리어**: 새로운 빌드로 재시도
-4. **대안 사용**: Fallback 또는 Offline 빌더
+4. **로컬 빌드 시도**: `./gradlew clean assembleDebug`
 
 ### 추가 도움이 필요한 경우
 - **Issues 탭**에서 새로운 이슈 생성

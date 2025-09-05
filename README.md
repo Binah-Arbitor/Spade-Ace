@@ -1,7 +1,8 @@
 # Spade Ace - 고성능 복호화 공격 도구
 
+[![Android CI](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/android-ci.yml)
 [![Build APK](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/build-apk.yml)
-[![Release Build](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release-build.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release-build.yml)
+[![Release](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/release.yml)
 
 **Spade Ace**는 코틀린 기반의 안드로이드 애플리케이션으로, 파일 및 디스크 복호화 공격을 위한 최적화된 도구입니다. 사용하기 쉬운 알고리즘과 다양한 조정 옵션을 제공하며, Android 21+를 대상으로 성능에 집중한 깔끔한 UI를 갖추고 있습니다.
 

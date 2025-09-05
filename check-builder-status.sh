@@ -171,28 +171,28 @@ print_status $BLUE "💡 Recommendations"
 
 if [ $health_score -ge 80 ]; then
     if [ $network_ok -ge 3 ]; then
-        echo "🚀 Use: Stable APK Builder (recommended)"
-        echo "   - Full-featured build with all optimizations"
-        echo "   - Command: Use GitHub Actions workflow"
+        echo "🚀 Use: Build APK (GitHub Actions)"
+        echo "   - Full APK build with artifacts"
+        echo "   - Command: Go to Actions tab > Build APK > Run workflow"
     else
-        echo "🔧 Use: Ultra-Stable APK Builder"
-        echo "   - Better network error handling"
-        echo "   - Command: Use GitHub Actions workflow"
+        echo "🏠 Use: Local Build"
+        echo "   - Build locally with cached dependencies"
+        echo "   - Command: ./gradlew assembleDebug"
     fi
 elif [ $health_score -ge 50 ]; then
     if [ $network_ok -ge 2 ]; then
-        echo "🔧 Use: Ultra-Stable APK Builder"
-        echo "   - Conservative build with extensive diagnostics"
-        echo "   - Command: Use GitHub Actions workflow"
+        echo "🚀 Use: Build APK (GitHub Actions)"
+        echo "   - Remote build with better resources"
+        echo "   - Command: Go to Actions tab > Build APK > Run workflow"
     else
-        echo "🌐 Use: Offline APK Builder"
-        echo "   - Build with cached dependencies"
-        echo "   - Command: Use GitHub Actions workflow"
+        echo "🏠 Use: Local Build (offline)"
+        echo "   - Build with cached dependencies if available"
+        echo "   - Command: ./gradlew --offline assembleDebug"
     fi
 else
-    echo "🔄 Use: Fallback APK Builder"
-    echo "   - Minimal requirements, maximum compatibility"
-    echo "   - Command: Use GitHub Actions workflow"
+    echo "🔧 Use: Local Build (minimal)"
+    echo "   - Basic local build"
+    echo "   - Command: ./gradlew assembleDebug"
 fi
 
 # Local build options
@@ -223,7 +223,7 @@ if [ $health_score -lt 80 ]; then
     
     if [ $network_ok -eq 0 ]; then
         echo "• Check internet connection and firewall settings"
-        echo "• Consider using Offline APK Builder for cached builds"
+        echo "• Try offline build: ./gradlew --offline assembleDebug"
     fi
     
     if ! $build_files_ok; then
