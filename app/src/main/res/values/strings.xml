@@ -50,4 +50,25 @@
     <string name="system_default">System Default</string>
     <string name="light_theme">Light Theme</string>
     <string name="dark_theme">Dark Theme</string>
+    
+    <!-- Additional UI strings -->
+    <string name="configure_decryption_attacks">Configure and run decryption attacks on encrypted files</string>
+    <string name="analyze_file_encryption">Analyze File Encryption</string>
+    <string name="browse_manage_files">Browse and manage encrypted files</string>
+    <string name="current_directory">Current Directory</string>
+    <string name="home">Home</string>
+    <string name="back">Back</string>
+    <string name="files">Files</string>
+    <string name="configure_app_settings">Configure app settings and preferences</string>
+    <string name="performance">Performance</string>
+    <string name="system_information">System Information</string>
+    <string name="loading_system_info">Loading system information…</string>
+    <string name="text_decryption">Text Decryption</string>
+    <string name="decrypt_text_messages">Decrypt encrypted text and messages</string>
+    <string name="encrypted_text">Encrypted Text</string>
+    <string name="decrypted_text">Decrypted Text</string>
+    <string name="decrypt_text">Decrypt Text</string>
+    
+    <!-- Default values -->
+    <string name="default_thread_count">4</string>
 </resources>

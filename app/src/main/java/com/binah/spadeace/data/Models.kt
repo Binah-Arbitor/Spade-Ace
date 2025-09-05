@@ -1,18 +1,19 @@
 package com.binah.spadeace.data
 
+import com.binah.spadeace.ui.Constants
 import java.io.File
 
 data class AttackConfiguration(
     val attackType: AttackType = AttackType.BRUTE_FORCE,
     val targetFile: File? = null,
-    val maxPasswordLength: Int = 8.coerceIn(1, 20),
+    val maxPasswordLength: Int = 8.coerceIn(Constants.MIN_PASSWORD_LENGTH, Constants.MAX_PASSWORD_LENGTH),
     val characterSet: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     val dictionaryFile: File? = null,
     val rainbowTableFile: File? = null,
     val maskPattern: String = "?l?l?l?l?d?d?d?d", // ?l=lowercase, ?u=uppercase, ?d=digit, ?s=special
     val ruleFile: File? = null,
-    val threadCount: Int = Runtime.getRuntime().availableProcessors().coerceIn(1, 32),
-    val chunkSize: Int = (1024 * 1024).coerceIn(1024, 10 * 1024 * 1024), // 1KB to 10MB chunks
+    val threadCount: Int = Runtime.getRuntime().availableProcessors().coerceIn(Constants.MIN_THREAD_COUNT, Constants.MAX_THREAD_COUNT),
+    val chunkSize: Int = Constants.DEFAULT_CHUNK_SIZE.coerceIn(Constants.MIN_CHUNK_SIZE, Constants.MAX_CHUNK_SIZE),
     val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH,
     val hardwareAcceleration: HardwareAcceleration = HardwareAcceleration.CPU_ONLY,
     val enableGpuAcceleration: Boolean = false,
@@ -23,17 +24,17 @@ data class AttackConfiguration(
 ) {
     // Validation functions
     fun isValid(): Boolean {
-        return maxPasswordLength in 1..20 &&
-               threadCount in 1..32 &&
-               chunkSize >= 1024 &&
+        return maxPasswordLength in Constants.MIN_PASSWORD_LENGTH..Constants.MAX_PASSWORD_LENGTH &&
+               threadCount in Constants.MIN_THREAD_COUNT..Constants.MAX_THREAD_COUNT &&
+               chunkSize >= Constants.MIN_CHUNK_SIZE &&
                characterSet.isNotEmpty()
     }
     
     fun withValidatedValues(): AttackConfiguration {
         return copy(
-            maxPasswordLength = maxPasswordLength.coerceIn(1, 20),
-            threadCount = threadCount.coerceIn(1, 32),
-            chunkSize = chunkSize.coerceAtLeast(1024)
+            maxPasswordLength = maxPasswordLength.coerceIn(Constants.MIN_PASSWORD_LENGTH, Constants.MAX_PASSWORD_LENGTH),
+            threadCount = threadCount.coerceIn(Constants.MIN_THREAD_COUNT, Constants.MAX_THREAD_COUNT),
+            chunkSize = chunkSize.coerceAtLeast(Constants.MIN_CHUNK_SIZE)
         )
     }
 }

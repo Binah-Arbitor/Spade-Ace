@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import com.binah.spadeace.databinding.FragmentFileOperationsBinding
+import com.binah.spadeace.ui.Constants
 import com.binah.spadeace.ui.MainViewModel
 import java.io.File
 
@@ -79,13 +80,13 @@ class FileOperationsFragment : Fragment() {
                     if (directory.exists() && directory.isDirectory && directory.canRead()) {
                         navigateToDirectory(directory)
                     } else {
-                        Toast.makeText(requireContext(), "Directory does not exist or is not accessible", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), Constants.ERROR_DIRECTORY_NOT_ACCESSIBLE, Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     Toast.makeText(requireContext(), "Please enter a directory path", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: SecurityException) {
-                Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), Constants.ERROR_PERMISSION_DENIED, Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Error accessing directory: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -136,17 +137,21 @@ class FileOperationsFragment : Fragment() {
                 compareBy({ !it.isDirectory }, { it.name.lowercase() })
             ) ?: emptyList()
             
-            // For now, just show count - in a real implementation, this would update RecyclerView
-            Toast.makeText(
-                requireContext(), 
-                "Found ${files.size} items in directory", 
-                Toast.LENGTH_SHORT
-            ).show()
+            // Apply file count limit for safety
+            val message = if (files.size > Constants.MAX_DIRECTORY_FILES) {
+                "Found ${files.size} items (showing first ${Constants.MAX_DIRECTORY_FILES})"
+            } else {
+                "Found ${files.size} items in directory"
+            }
             
-            // TODO: Implement RecyclerView adapter for file list
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+            
+            // TODO: Implement RecyclerView adapter for file list with paging
             
         } catch (e: SecurityException) {
-            Toast.makeText(requireContext(), "Cannot list files", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Constants.ERROR_PERMISSION_DENIED, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error listing directory contents", Toast.LENGTH_SHORT).show()
         }
     }
     

@@ -1,6 +1,8 @@
 package com.binah.spadeace.ui.fragments
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,8 +10,11 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.binah.spadeace.databinding.FragmentTextDecryptionBinding
+import com.binah.spadeace.ui.Constants
 import com.binah.spadeace.ui.MainViewModel
+import kotlinx.coroutines.launch
 
 class TextDecryptionFragment : Fragment() {
     
@@ -45,8 +50,8 @@ class TextDecryptionFragment : Fragment() {
                 }
                 
                 // Validate input length to prevent excessive processing
-                if (encryptedText.length > 10000) {
-                    Toast.makeText(requireContext(), "Text too long (max 10,000 characters)", Toast.LENGTH_SHORT).show()
+                if (encryptedText.length > Constants.MAX_TEXT_INPUT_LENGTH) {
+                    Toast.makeText(requireContext(), Constants.ERROR_TEXT_TOO_LONG, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 

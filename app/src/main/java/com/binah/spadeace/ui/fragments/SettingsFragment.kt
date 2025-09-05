@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.binah.spadeace.data.ThemePreferences
 import com.binah.spadeace.databinding.FragmentSettingsBinding
+import com.binah.spadeace.ui.Constants
 import com.binah.spadeace.ui.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -52,7 +53,7 @@ class SettingsFragment : Fragment() {
         
         // Thread count with validation
         val availableProcessors = Runtime.getRuntime().availableProcessors()
-        val safeThreadCount = availableProcessors.coerceAtLeast(1).coerceAtMost(32)
+        val safeThreadCount = availableProcessors.coerceIn(Constants.MIN_THREAD_COUNT, Constants.MAX_THREAD_COUNT)
         binding.editThreadCount.setText(safeThreadCount.toString())
         
         // Add input validation for thread count
@@ -68,11 +69,11 @@ class SettingsFragment : Fragment() {
                             threadCount == null -> {
                                 binding.editThreadCount.error = "Please enter a valid number"
                             }
-                            threadCount < 1 -> {
-                                binding.editThreadCount.error = "Minimum 1 thread required"
+                            threadCount < Constants.MIN_THREAD_COUNT -> {
+                                binding.editThreadCount.error = "Minimum ${Constants.MIN_THREAD_COUNT} thread required"
                             }
-                            threadCount > 32 -> {
-                                binding.editThreadCount.error = "Maximum 32 threads allowed"
+                            threadCount > Constants.MAX_THREAD_COUNT -> {
+                                binding.editThreadCount.error = "Maximum ${Constants.MAX_THREAD_COUNT} threads allowed"
                             }
                             else -> {
                                 binding.editThreadCount.error = null
@@ -118,7 +119,7 @@ class SettingsFragment : Fragment() {
                 
                 // Add memory usage warning if needed
                 val memoryUsagePercent = ((maxMemory - freeMemory) * 100 / maxMemory).coerceIn(0, 100)
-                if (memoryUsagePercent > 80) {
+                if (memoryUsagePercent > Constants.HIGH_MEMORY_USAGE_THRESHOLD) {
                     appendLine("\n⚠️ High memory usage: ${memoryUsagePercent}%")
                 }
             }
@@ -162,7 +163,7 @@ class SettingsFragment : Fragment() {
             viewModel.attackConfig.collect { config ->
                 try {
                     // Update thread count display with bounds checking
-                    val safeThreadCount = config.threadCount.coerceIn(1, 32)
+                    val safeThreadCount = config.threadCount.coerceIn(Constants.MIN_THREAD_COUNT, Constants.MAX_THREAD_COUNT)
                     binding.editThreadCount.setText(safeThreadCount.toString())
                     
                     // Update optimization level slider

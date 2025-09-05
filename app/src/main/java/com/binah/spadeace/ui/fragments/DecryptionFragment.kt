@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.binah.spadeace.data.AttackType
 import com.binah.spadeace.databinding.FragmentDecryptionBinding
+import com.binah.spadeace.ui.Constants
 import com.binah.spadeace.ui.MainViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -38,8 +39,8 @@ class DecryptionFragment : Fragment() {
                         val file = File(path)
                         if (file.exists() && file.canRead()) {
                             // Additional safety check for file size
-                            if (file.length() > 100 * 1024 * 1024) { // 100MB limit
-                                Toast.makeText(requireContext(), "File too large (max 100MB)", Toast.LENGTH_SHORT).show()
+                            if (file.length() > Constants.MAX_FILE_SIZE_BYTES) {
+                                Toast.makeText(requireContext(), Constants.ERROR_FILE_TOO_LARGE, Toast.LENGTH_SHORT).show()
                                 return@registerForActivityResult
                             }
                             viewModel.updateTargetFile(file)
@@ -47,7 +48,7 @@ class DecryptionFragment : Fragment() {
                             Toast.makeText(requireContext(), "Cannot access selected file", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(requireContext(), "Invalid file path", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), Constants.ERROR_INVALID_FILE_PATH, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
