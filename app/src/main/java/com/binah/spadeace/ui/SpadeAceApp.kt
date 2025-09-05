@@ -17,16 +17,13 @@ import com.binah.spadeace.R
 import com.binah.spadeace.ui.screens.DecryptionScreen
 import com.binah.spadeace.ui.screens.FileOperationsScreen
 import com.binah.spadeace.ui.screens.SettingsScreen
+import com.binah.spadeace.ui.screens.TextDecryptionScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpadeAceApp(
-    modifier: Modifier = Modifier,
-    viewModel: MainViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: MainViewModel,
+    modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val context = LocalContext.current
@@ -67,12 +64,18 @@ fun SpadeAceApp(
             NavigationBarItem(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                icon = { Icon(Icons.Default.Folder, contentDescription = null) },
-                label = { Text(stringResource(R.string.file_operations)) }
+                icon = { Icon(Icons.Default.TextFields, contentDescription = null) },
+                label = { Text("Text Decryption") }
             )
             NavigationBarItem(
                 selected = selectedTab == 2,
                 onClick = { selectedTab = 2 },
+                icon = { Icon(Icons.Default.Folder, contentDescription = null) },
+                label = { Text(stringResource(R.string.file_operations)) }
+            )
+            NavigationBarItem(
+                selected = selectedTab == 3,
+                onClick = { selectedTab = 3 },
                 icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                 label = { Text(stringResource(R.string.settings)) }
             )
@@ -86,8 +89,9 @@ fun SpadeAceApp(
         ) {
             when (selectedTab) {
                 0 -> DecryptionScreen(viewModel = viewModel)
-                1 -> FileOperationsScreen(viewModel = viewModel)
-                2 -> SettingsScreen(viewModel = viewModel)
+                1 -> TextDecryptionScreen(viewModel = viewModel)
+                2 -> FileOperationsScreen(viewModel = viewModel)
+                3 -> SettingsScreen(viewModel = viewModel)
             }
         }
     }

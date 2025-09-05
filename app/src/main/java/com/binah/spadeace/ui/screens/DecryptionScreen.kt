@@ -422,24 +422,97 @@ fun DecryptionScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.progress),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isAttackRunning) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.progress),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
                     
                     if (isAttackRunning) {
                         LinearProgressIndicator(
                             progress = attackProgress.progress,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        
+                        // Progress percentage
+                        Text(
+                            text = "${(attackProgress.progress * 100).toInt()}% Complete",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
                     
-                    Text("Current attempt: ${attackProgress.currentAttempt}")
-                    Text("Attempts: ${attackProgress.attemptsCount}")
+                    Divider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                    
+                    // Current attempt with styling
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Key,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Current: ${attackProgress.currentAttempt}",
+                            modifier = Modifier.padding(start = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                            )
+                        )
+                    }
+                    
+                    // Attempts count with formatting
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Numbers,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Attempts: ${formatNumber(attackProgress.attemptsCount)}",
+                            modifier = Modifier.padding(start = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                     
                     if (attackProgress.estimatedTimeRemaining > 0) {
-                        Text("Estimated time remaining: ${formatTime(attackProgress.estimatedTimeRemaining)}")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "ETA: ${formatTime(attackProgress.estimatedTimeRemaining)}",
+                                modifier = Modifier.padding(start = 8.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
                     }
                 }
             }
@@ -594,5 +667,14 @@ private fun formatTime(milliseconds: Long): String {
         hours > 0 -> "${hours}h ${minutes % 60}m ${seconds % 60}s"
         minutes > 0 -> "${minutes}m ${seconds % 60}s"
         else -> "${seconds}s"
+    }
+}
+
+private fun formatNumber(number: Long): String {
+    return when {
+        number >= 1_000_000_000 -> String.format("%.1fB", number / 1_000_000_000.0)
+        number >= 1_000_000 -> String.format("%.1fM", number / 1_000_000.0)
+        number >= 1_000 -> String.format("%.1fK", number / 1_000.0)
+        else -> number.toString()
     }
 }

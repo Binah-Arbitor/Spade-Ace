@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.binah.spadeace.R
 import com.binah.spadeace.data.OptimizationLevel
 import com.binah.spadeace.data.HardwareAcceleration
+import com.binah.spadeace.data.ThemePreferences
 import com.binah.spadeace.ui.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +29,7 @@ fun SettingsScreen(
 ) {
     val attackConfig by viewModel.attackConfig.collectAsState()
     val gpuInfo by viewModel.gpuInfo.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
     val isHardwareSupported = viewModel.isHardwareAccelerationSupported()
     val supportedChipsets = viewModel.getSupportedChipsets()
     
@@ -56,6 +58,68 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+        
+        // Theme Settings
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.appearance),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                
+                Text(
+                    text = stringResource(R.string.theme_mode),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                Column {
+                    val themeOptions = listOf(
+                        ThemePreferences.THEME_MODE_SYSTEM to stringResource(R.string.system_default),
+                        ThemePreferences.THEME_MODE_LIGHT to stringResource(R.string.light_theme),
+                        ThemePreferences.THEME_MODE_DARK to stringResource(R.string.dark_theme)
+                    )
+                    
+                    themeOptions.forEach { (mode, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = themeMode == mode,
+                                    onClick = { viewModel.setThemeMode(mode) }
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = themeMode == mode,
+                                onClick = { viewModel.setThemeMode(mode) }
+                            )
+                            Text(
+                                text = label,
+                                modifier = Modifier.padding(start = 8.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
             }
         }
         
