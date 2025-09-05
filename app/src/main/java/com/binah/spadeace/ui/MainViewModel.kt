@@ -16,6 +16,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val decryptionEngine = DecryptionEngine()
     private var currentAttackJob: Job? = null
     private val gpuDetector = GpuDetector(application.applicationContext)
+    private val themePreferences = ThemePreferences(application.applicationContext)
     
     private val _attackConfig = MutableStateFlow(AttackConfiguration())
     val attackConfig: StateFlow<AttackConfiguration> = _attackConfig.asStateFlow()
@@ -34,6 +35,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     private val _encryptionAnalysis = MutableStateFlow<EncryptionAnalysis?>(null)
     val encryptionAnalysis: StateFlow<EncryptionAnalysis?> = _encryptionAnalysis.asStateFlow()
+    
+    // Theme preferences
+    val isDarkMode: StateFlow<Boolean> = themePreferences.isDarkMode
+    val themeMode: StateFlow<Int> = themePreferences.themeMode
     
     init {
         // Detect GPU info on initialization
@@ -155,6 +160,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun clearAnalysis() {
         _encryptionAnalysis.value = null
+    }
+    
+    // Theme management functions
+    fun setThemeMode(mode: Int) {
+        themePreferences.setThemeMode(mode)
+    }
+    
+    fun updateSystemTheme(isSystemDark: Boolean) {
+        themePreferences.updateSystemTheme(isSystemDark)
     }
     
     override fun onCleared() {
