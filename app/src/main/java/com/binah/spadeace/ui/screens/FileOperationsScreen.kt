@@ -195,6 +195,8 @@ private fun FileItem(
                     contentDescription = null,
                     tint = if (file.isDirectory) {
                         MaterialTheme.colorScheme.primary
+                    } else if (isPotentiallyEncrypted(file)) {
+                        MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
@@ -236,22 +238,69 @@ private fun FileItem(
 
 private fun getFileIcon(file: File): androidx.compose.ui.graphics.vector.ImageVector {
     return when (file.extension.lowercase()) {
-        "txt", "log", "md" -> Icons.Default.Description
-        "zip", "rar", "7z", "tar", "gz" -> Icons.Default.Archive
-        "jpg", "jpeg", "png", "gif", "bmp" -> Icons.Default.Image
-        "mp4", "avi", "mov", "mkv" -> Icons.Default.VideoFile
-        "mp3", "wav", "flac", "ogg" -> Icons.Default.AudioFile
+        // Text files
+        "txt", "log", "md", "csv", "json", "xml", "yaml", "yml" -> Icons.Default.Description
+        
+        // Archives
+        "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "cab", "iso" -> Icons.Default.Archive
+        
+        // Images
+        "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "svg" -> Icons.Default.Image
+        
+        // Videos
+        "mp4", "avi", "mov", "mkv", "wmv", "flv", "webm", "3gp" -> Icons.Default.VideoFile
+        
+        // Audio
+        "mp3", "wav", "flac", "ogg", "aac", "wma", "m4a" -> Icons.Default.AudioFile
+        
+        // Documents
         "pdf" -> Icons.Default.PictureAsPdf
-        "apk" -> Icons.Default.Android
+        "doc", "docx", "odt", "rtf" -> Icons.Default.Description
+        "xls", "xlsx", "ods", "csv" -> Icons.Default.TableChart
+        "ppt", "pptx", "odp" -> Icons.Default.Slideshow
+        
+        // Code files
+        "kt", "java", "py", "js", "html", "css", "cpp", "c", "h" -> Icons.Default.Code
+        
+        // Android/Mobile
+        "apk", "aab" -> Icons.Default.Android
+        "ipa" -> Icons.Default.PhoneAndroid
+        
+        // Encrypted/Security files
+        "gpg", "pgp", "asc", "p7s", "crt", "key", "pem" -> Icons.Default.Security
+        
+        // Database files
+        "db", "sqlite", "sql" -> Icons.Default.Storage
+        
+        // Configuration files
+        "conf", "cfg", "ini", "properties" -> Icons.Default.Settings
+        
         else -> Icons.Default.InsertDriveFile
     }
 }
 
 private fun formatFileSize(bytes: Long): String {
     return when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-        bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
-        else -> "${bytes / (1024 * 1024 * 1024)} GB"
+        bytes >= 1024L * 1024 * 1024 * 1024 -> String.format("%.1f TB", bytes / (1024.0 * 1024 * 1024 * 1024))
+        bytes >= 1024 * 1024 * 1024 -> String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024))
+        bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024))
+        bytes >= 1024 -> String.format("%.1f KB", bytes / 1024.0)
+        else -> "$bytes B"
     }
+}
+
+private fun isPotentiallyEncrypted(file: File): Boolean {
+    val extension = file.extension.lowercase()
+    val encryptedExtensions = setOf(
+        "enc", "encrypted", "aes", "gpg", "pgp", "p7m", "p7s", 
+        "crypt", "secure", "vault", "protected", "locked"
+    )
+    
+    // Check file extension
+    if (extension in encryptedExtensions) return true
+    
+    // Check for encrypted file patterns in name
+    val fileName = file.nameWithoutExtension.lowercase()
+    val encryptedPatterns = listOf("encrypted", "secure", "protected", "locked", "vault")
+    return encryptedPatterns.any { pattern -> fileName.contains(pattern) }
 }

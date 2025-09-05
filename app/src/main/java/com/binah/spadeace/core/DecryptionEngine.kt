@@ -8,7 +8,8 @@ import com.binah.spadeace.data.OptimizationLevel
 import com.binah.spadeace.data.HardwareAcceleration
 import com.binah.spadeace.data.EncryptionAnalysis
 import com.binah.spadeace.data.KeyDerivationMethod
-=======
+import com.binah.spadeace.core.crypto.AlgorithmRegistry
+import com.binah.spadeace.core.crypto.EncryptionAlgorithm
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +38,8 @@ import kotlin.math.pow
 import kotlin.random.Random
 
 class DecryptionEngine {
+    
+    private val algorithmRegistry = AlgorithmRegistry.getInstance()
     
     init {
         Security.addProvider(BouncyCastleProvider())
@@ -310,61 +313,32 @@ class DecryptionEngine {
         if (file == null || !file.exists()) return false
         
         return try {
-            // Expanded list of encryption algorithms
-            val algorithms = listOf(
-                "AES", "DES", "3DES", "Blowfish", 
-                "Twofish", "Serpent", "CAST5", "CAST6",
-                "RC2", "RC4", "RC5", "RC6",
-                "Camellia", "IDEA", "Skipjack"
-            )
-            
-            // Expanded cipher modes  
-            val modes = listOf("ECB", "CBC", "CFB", "OFB", "CTR", "GCM", "CCM")
-            
-            // Expanded padding schemes
-            val paddings = listOf(
-                "PKCS5Padding", "NoPadding", "PKCS1Padding",
-                "OAEPPadding", "ISO10126Padding", "X9.23Padding"
-            )
+            // Use modular algorithm system
+            val algorithms = algorithmRegistry.getAllAlgorithms()
             
             for (algorithm in algorithms) {
-                for (mode in modes) {
-                    // Skip unsupported combinations
-                    if (isUnsupportedCombination(algorithm, mode)) continue
-                    
-                    for (padding in paddings) {
-                        // Skip invalid padding for certain modes
-                        if (isInvalidPadding(mode, padding)) continue
+                for (mode in algorithm.supportedModes) {
+                    for (padding in algorithm.supportedPaddings) {
+                        // Skip invalid combinations
+                        if (!algorithm.isValidCombination(mode, padding)) continue
                         
                         try {
-                            val transformation = "$algorithm/$mode/$padding"
-                            val key = generateKey(password, algorithm, keyDerivationMethod)
-                            val cipher = Cipher.getInstance(transformation)
-                            
-                            // Handle different modes that require IV
-                            if (requiresIV(mode)) {
-                                val iv = generateIV(algorithm, mode)
-                                if (mode == "GCM") {
-                                    val gcmSpec = GCMParameterSpec(128, iv)
-                                    cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
-                                } else {
-                                    val ivSpec = IvParameterSpec(iv)
-                                    cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
-                                }
-                            } else {
-                                cipher.init(Cipher.DECRYPT_MODE, key)
-                            }
-                            
-                            // Try to decrypt first few bytes
+                            // Read test data from file
                             val testData = ByteArray(minOf(1024, file.length().toInt()))
                             FileInputStream(file).use { fis ->
                                 fis.read(testData)
                             }
                             
-                            cipher.doFinal(testData)
-                            return true // Successful decryption
+                            // Try to decrypt using the modular algorithm
+                            val decryptedData = algorithm.decrypt(testData, password, mode, padding)
+                            
+                            // Check if decryption was successful
+                            if (decryptedData != null && isValidDecryption(decryptedData)) {
+                                return true
+                            }
                         } catch (e: Exception) {
-                            // Continue with next combination
+                            // Continue trying other combinations
+                            continue
                         }
                     }
                 }
@@ -372,6 +346,39 @@ class DecryptionEngine {
             false
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    /**
+     * Check if decrypted data appears to be valid (basic heuristics)
+     */
+    private fun isValidDecryption(data: ByteArray): Boolean {
+        if (data.isEmpty()) return false
+        
+        // Basic checks for valid decrypted data
+        val printableChars = data.count { byte -> 
+            val char = byte.toInt() and 0xFF
+            char in 32..126 || char in 9..13 // Printable ASCII + common whitespace
+        }
+        
+        val printableRatio = printableChars.toFloat() / data.size
+        
+        // If more than 70% of characters are printable, likely valid text
+        if (printableRatio > 0.7f) return true
+        
+        // Check for common file headers (magic numbers)
+        return when {
+            data.size >= 4 -> {
+                val header = data.take(4).map { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }.joinToString("")
+                header in listOf(
+                    "504b0304", // ZIP
+                    "25504446", // PDF (%PDF)
+                    "89504e47", // PNG
+                    "ffd8ffe0", "ffd8ffe1", "ffd8ffe2", // JPEG
+                    "474966383761", "474946383961" // GIF
+                )
+            }
+            else -> false
         }
     }
     
@@ -880,19 +887,39 @@ class DecryptionEngine {
         // Check for common encrypted file signatures
         val detectedFormat = detectFileFormat(headerBytes)
         
-        // Analyze block size alignment to suggest algorithms
+        // Use modular algorithm system for suggestions
+        val suggestedAlgorithms = algorithmRegistry.suggestAlgorithms(
+            fileSize = fileSize,
+            blockAlignment = blockSizeAlignment,
+            possibleModes = if (possibleModes.isNotEmpty()) possibleModes else emptyList(),
+            possiblePaddings = if (possiblePaddings.isNotEmpty()) possiblePaddings else emptyList()
+        )
+        
+        possibleAlgorithms.clear()
+        possibleAlgorithms.addAll(suggestedAlgorithms.map { it.name })
+        
+        // Update analysis notes based on suggested algorithms
+        if (suggestedAlgorithms.isNotEmpty()) {
+            analysisNotes.add("Suggested algorithms: ${suggestedAlgorithms.take(3).map { it.name }.joinToString(", ")}")
+        }
+        
+        // Analyze block size alignment to suggest algorithms (enhanced with registry)
         when (blockSizeAlignment) {
             16 -> {
-                possibleAlgorithms.addAll(listOf("AES", "Twofish", "Serpent", "CAST6", "Camellia"))
-                analysisNotes.add("16-byte alignment suggests AES, Twofish, Serpent, CAST6, or Camellia")
+                val blockAlgorithms = algorithmRegistry.getAlgorithmsByBlockSize(16)
+                analysisNotes.add("16-byte alignment suggests: ${blockAlgorithms.map { it.name }.joinToString(", ")}")
             }
             8 -> {
-                possibleAlgorithms.addAll(listOf("DES", "3DES", "Blowfish", "CAST5"))
-                analysisNotes.add("8-byte alignment suggests DES, 3DES, Blowfish, or CAST5")
+                val blockAlgorithms = algorithmRegistry.getAlgorithmsByBlockSize(8)
+                analysisNotes.add("8-byte alignment suggests: ${blockAlgorithms.map { it.name }.joinToString(", ")}")
             }
             else -> {
-                possibleAlgorithms.addAll(listOf("RC4", "RC5", "RC6")) // Stream ciphers or variable block
-                analysisNotes.add("No clear block alignment - might be stream cipher or custom implementation")
+                val streamAlgorithms = algorithmRegistry.getAllAlgorithms().filter { it.blockSize <= 1 }
+                if (streamAlgorithms.isNotEmpty()) {
+                    analysisNotes.add("No clear block alignment - might be stream cipher: ${streamAlgorithms.map { it.name }.joinToString(", ")}")
+                } else {
+                    analysisNotes.add("No clear block alignment - might be stream cipher or custom implementation")
+                }
             }
         }
         
