@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.binah.spadeace.R
 import com.binah.spadeace.data.AttackType
+import com.binah.spadeace.data.HardwareAcceleration
+import com.binah.spadeace.data.KeyDerivationMethod
 import com.binah.spadeace.ui.MainViewModel
 import java.io.File
 
@@ -162,6 +164,11 @@ fun DecryptionScreen(
                                 text = when (type) {
                                     AttackType.BRUTE_FORCE -> stringResource(R.string.brute_force)
                                     AttackType.DICTIONARY_ATTACK -> stringResource(R.string.dictionary_attack)
+                                    AttackType.RAINBOW_TABLE -> "Rainbow Table"
+                                    AttackType.HYBRID_ATTACK -> "Hybrid Attack"
+                                    AttackType.MASK_ATTACK -> "Mask Attack"
+                                    AttackType.RULE_BASED_ATTACK -> "Rule-based Attack"
+                                    AttackType.SMART_BRUTE_FORCE -> "Smart Brute Force"
                                 },
                                 modifier = Modifier.padding(start = 8.dp)
                             )
@@ -185,47 +192,204 @@ fun DecryptionScreen(
                     fontWeight = FontWeight.Bold
                 )
                 
-                if (attackConfig.attackType == AttackType.BRUTE_FORCE) {
-                    // Max Password Length
-                    Text("${stringResource(R.string.max_length)}: ${attackConfig.maxPasswordLength}")
-                    Slider(
-                        value = attackConfig.maxPasswordLength.toFloat(),
-                        onValueChange = { viewModel.updateMaxPasswordLength(it.toInt()) },
-                        valueRange = 1f..12f,
-                        steps = 10
+                when (attackConfig.attackType) {
+                    AttackType.BRUTE_FORCE, AttackType.SMART_BRUTE_FORCE -> {
+                        // Max Password Length
+                        Text("${stringResource(R.string.max_length)}: ${attackConfig.maxPasswordLength}")
+                        Slider(
+                            value = attackConfig.maxPasswordLength.toFloat(),
+                            onValueChange = { viewModel.updateMaxPasswordLength(it.toInt()) },
+                            valueRange = 1f..12f,
+                            steps = 10
+                        )
+                        
+                        // Character Set
+                        OutlinedTextField(
+                            value = attackConfig.characterSet,
+                            onValueChange = { viewModel.updateCharacterSet(it) },
+                            label = { Text(stringResource(R.string.charset)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 3
+                        )
+                    }
+                    
+                    AttackType.DICTIONARY_ATTACK, AttackType.HYBRID_ATTACK, AttackType.RULE_BASED_ATTACK -> {
+                        // Dictionary File Selection
+                        OutlinedTextField(
+                            value = attackConfig.dictionaryFile?.absolutePath ?: "",
+                            onValueChange = { },
+                            label = { Text(stringResource(R.string.dictionary_file)) },
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                            type = "text/*"
+                                            addCategory(Intent.CATEGORY_OPENABLE)
+                                        }
+                                        dictionaryPickerLauncher.launch(intent)
+                                    }
+                                ) {
+                                    Icon(Icons.Default.Description, contentDescription = "Select Dictionary")
+                                }
+                            }
+                        )
+                        
+                        // Rule File Selection (for rule-based attack)
+                        if (attackConfig.attackType == AttackType.RULE_BASED_ATTACK) {
+                            OutlinedTextField(
+                                value = attackConfig.ruleFile?.absolutePath ?: "",
+                                onValueChange = { },
+                                label = { Text("Rule File") },
+                                readOnly = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                                type = "text/*"
+                                                addCategory(Intent.CATEGORY_OPENABLE)
+                                            }
+                                            // Note: This would need a separate launcher for rule files
+                                            dictionaryPickerLauncher.launch(intent)
+                                        }
+                                    ) {
+                                        Icon(Icons.Default.Description, contentDescription = "Select Rule File")
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    
+                    AttackType.RAINBOW_TABLE -> {
+                        // Rainbow Table File Selection
+                        OutlinedTextField(
+                            value = attackConfig.rainbowTableFile?.absolutePath ?: "",
+                            onValueChange = { },
+                            label = { Text("Rainbow Table File") },
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                            type = "*/*"
+                                            addCategory(Intent.CATEGORY_OPENABLE)
+                                        }
+                                        dictionaryPickerLauncher.launch(intent)
+                                    }
+                                ) {
+                                    Icon(Icons.Default.Description, contentDescription = "Select Rainbow Table")
+                                }
+                            }
+                        )
+                    }
+                    
+                    AttackType.MASK_ATTACK -> {
+                        // Mask Pattern
+                        OutlinedTextField(
+                            value = attackConfig.maskPattern,
+                            onValueChange = { viewModel.updateMaskPattern(it) },
+                            label = { Text("Mask Pattern") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("?l?l?l?l?d?d?d?d") },
+                            supportingText = { Text("?l=lowercase, ?u=uppercase, ?d=digit, ?s=special") }
+                        )
+                    }
+                }
+                
+                // Hardware Acceleration Settings
+                Text(
+                    text = "Hardware Acceleration",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    HardwareAcceleration.values().forEach { accel ->
+                        Row(
+                            modifier = Modifier
+                                .selectable(
+                                    selected = attackConfig.hardwareAcceleration == accel,
+                                    onClick = { viewModel.updateHardwareAcceleration(accel) }
+                                )
+                                .weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = attackConfig.hardwareAcceleration == accel,
+                                onClick = { viewModel.updateHardwareAcceleration(accel) }
+                            )
+                            Text(
+                                text = when (accel) {
+                                    HardwareAcceleration.CPU_ONLY -> "CPU Only"
+                                    HardwareAcceleration.GPU_ASSISTED -> "GPU Assisted"
+                                    HardwareAcceleration.HYBRID_MODE -> "Hybrid Mode"
+                                },
+                                modifier = Modifier.padding(start = 4.dp),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                
+                // Key Derivation Method
+                Text(
+                    text = "Key Derivation Method",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                var showKDFDropdown by remember { mutableStateOf(false) }
+                
+                ExposedDropdownMenuBox(
+                    expanded = showKDFDropdown,
+                    onExpandedChange = { showKDFDropdown = !showKDFDropdown }
+                ) {
+                    OutlinedTextField(
+                        value = when (attackConfig.keyDerivationMethod) {
+                            KeyDerivationMethod.SHA256_SIMPLE -> "SHA-256 Simple"
+                            KeyDerivationMethod.PBKDF2 -> "PBKDF2"
+                            KeyDerivationMethod.SCRYPT -> "Scrypt"
+                            KeyDerivationMethod.ARGON2 -> "Argon2"
+                            KeyDerivationMethod.BCRYPT -> "Bcrypt"
+                        },
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Method") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(showKDFDropdown) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
                     
-                    // Character Set
-                    OutlinedTextField(
-                        value = attackConfig.characterSet,
-                        onValueChange = { viewModel.updateCharacterSet(it) },
-                        label = { Text(stringResource(R.string.charset)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = false,
-                        maxLines = 3
-                    )
-                } else {
-                    // Dictionary File Selection
-                    OutlinedTextField(
-                        value = attackConfig.dictionaryFile?.absolutePath ?: "",
-                        onValueChange = { },
-                        label = { Text(stringResource(R.string.dictionary_file)) },
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            IconButton(
+                    ExposedDropdownMenu(
+                        expanded = showKDFDropdown,
+                        onDismissRequest = { showKDFDropdown = false }
+                    ) {
+                        KeyDerivationMethod.values().forEach { method ->
+                            DropdownMenuItem(
+                                text = { 
+                                    Text(when (method) {
+                                        KeyDerivationMethod.SHA256_SIMPLE -> "SHA-256 Simple"
+                                        KeyDerivationMethod.PBKDF2 -> "PBKDF2"
+                                        KeyDerivationMethod.SCRYPT -> "Scrypt"
+                                        KeyDerivationMethod.ARGON2 -> "Argon2"
+                                        KeyDerivationMethod.BCRYPT -> "Bcrypt"
+                                    })
+                                },
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                                        type = "text/*"
-                                        addCategory(Intent.CATEGORY_OPENABLE)
-                                    }
-                                    dictionaryPickerLauncher.launch(intent)
+                                    viewModel.updateKeyDerivationMethod(method)
+                                    showKDFDropdown = false
                                 }
-                            ) {
-                                Icon(Icons.Default.Description, contentDescription = "Select Dictionary")
-                            }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }

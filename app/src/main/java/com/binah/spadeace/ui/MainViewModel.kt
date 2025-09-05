@@ -58,6 +58,26 @@ class MainViewModel : ViewModel() {
         _attackConfig.value = _attackConfig.value.copy(optimizationLevel = level)
     }
     
+    fun updateHardwareAcceleration(acceleration: HardwareAcceleration) {
+        _attackConfig.value = _attackConfig.value.copy(hardwareAcceleration = acceleration)
+    }
+    
+    fun updateKeyDerivationMethod(method: KeyDerivationMethod) {
+        _attackConfig.value = _attackConfig.value.copy(keyDerivationMethod = method)
+    }
+    
+    fun updateMaskPattern(pattern: String) {
+        _attackConfig.value = _attackConfig.value.copy(maskPattern = pattern)
+    }
+    
+    fun updateRainbowTableFile(file: File?) {
+        _attackConfig.value = _attackConfig.value.copy(rainbowTableFile = file)
+    }
+    
+    fun updateRuleFile(file: File?) {
+        _attackConfig.value = _attackConfig.value.copy(ruleFile = file)
+    }
+    
     fun startAttack() {
         if (_isAttackRunning.value) return
         
