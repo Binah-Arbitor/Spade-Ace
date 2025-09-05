@@ -1,37 +1,26 @@
-# 🚀 안정적인 APK 빌더 가이드
+# 🚀 간소화된 APK 빌더 가이드
 
-이 가이드는 Spade Ace 프로젝트의 안정적인 APK 빌드를 위한 완전한 솔루션을 제공합니다.
+이 가이드는 Spade Ace 프로젝트의 새롭게 간소화된 APK 빌드 시스템을 설명합니다.
 
 ## 📋 개요
 
-이 프로젝트에는 다양한 상황에 대응할 수 있는 4가지 APK 빌드 워크플로가 있습니다:
+이 프로젝트는 **단일 통합 APK 빌더**를 제공합니다:
 
-### 1. 🚀 Stable APK Builder (권장)
-- **파일**: `.github/workflows/stable-apk-builder.yml`
-- **용도**: 일반적인 프로덕션 빌드
-- **특징**: 포괄적인 오류 처리, 재시도 메커니즘, 네트워크 진단
-
-### 2. 🔄 Fallback APK Builder
-- **파일**: `.github/workflows/fallback-apk-builder.yml`
-- **용도**: 메인 빌더가 실패할 때의 백업
-- **특징**: 보수적인 접근 방식, 최소한의 의존성
-
-### 3. 🔧 Ultra-Stable APK Builder
-- **파일**: `.github/workflows/ultra-stable-apk-builder.yml`
-- **용도**: 최대 안정성이 필요한 상황
-- **특징**: 상세한 진단, 네트워크 연결 테스트, 단계별 검증
-
-### 4. 🌐 Offline APK Builder
-- **파일**: `.github/workflows/offline-apk-builder.yml`
-- **용도**: 인터넷 연결이 불안정하거나 제한된 환경
-- **특징**: 캐시된 의존성 사용, 오프라인 빌드 지원
+### 🚀 APK Builder (통합 빌더)
+- **파일**: `.github/workflows/apk-builder.yml`
+- **용도**: 모든 빌드 요구사항을 충족하는 간단하고 효율적인 빌더
+- **특징**: 
+  - 깔끔한 설정과 빠른 빌드
+  - 디버그 및 릴리즈 APK 지원
+  - 안정적이고 유지보수가 쉬운 구조
+  - 불필요한 복잡성 제거
 
 ## 🛠️ 사용 방법
 
 ### GitHub Actions에서 실행
 
 1. **GitHub 저장소의 Actions 탭으로 이동**
-2. **원하는 워크플로 선택**
+2. **"APK Builder" 워크플로 선택**
 3. **"Run workflow" 버튼 클릭**
 4. **빌드 타입 선택** (debug, release, both)
 5. **"Run workflow" 클릭하여 실행**
@@ -74,8 +63,8 @@ GitHub Actions 실행 후 다음을 다운로드할 수 있습니다:
 Could not GET 'https://dl.google.com/...'
 ```
 **해결책**:
-- **Ultra-Stable APK Builder** 또는 **Offline APK Builder** 사용
-- 재시도 자동 실행됨 (최대 3-5회)
+- 워크플로우 재실행 (자동 재시도 메커니즘 포함)
+- 몇 분 후 다시 시도
 
 #### 2. 메모리 부족 오류
 ```
@@ -83,17 +72,17 @@ OutOfMemoryError
 ```
 **해결책**:
 - `gradle.properties`에서 메모리 설정 확인
-- **Fallback APK Builder** 사용 (더 적은 메모리 사용)
+- 로컬 빌드 시 메모리 할당 증가
 
 #### 3. 빌드 시간 초과
 **해결책**:
-- **Offline APK Builder**로 캐시된 의존성 사용
-- 병렬 빌드 비활성화된 **Ultra-Stable APK Builder** 사용
+- 워크플로우 재실행
+- 캐시된 의존성 활용으로 시간 단축
 
 #### 4. 의존성 해결 실패
 **해결책**:
-- 캐시 클리어 후 재실행
-- **Fallback APK Builder**에서 force_clean 옵션 사용
+- Actions > Caches에서 캐시 클리어 후 재실행
+- 네트워크 상태 확인 후 재시도
 
 ### 로그 확인 방법
 
@@ -157,16 +146,23 @@ GitHub Repository Settings → Secrets에 추가:
 ## 🆘 지원
 
 ### 빌드 실패 시
-1. **가장 안정적인 워크플로 시도**: Ultra-Stable APK Builder
-2. **로그 확인**: 구체적인 오류 메시지 찾기
-3. **캐시 클리어**: 새로운 빌드로 재시도
-4. **대안 사용**: Fallback 또는 Offline 빌더
+1. **Actions 탭에서 로그 확인**: 구체적인 오류 메시지 찾기
+2. **캐시 클리어**: Actions > Caches에서 Gradle 캐시 삭제
+3. **재시도**: 워크플로우 재실행
+4. **로컬 빌드**: 빌드 스크립트 `./build-apk.sh` 사용
 
 ### 추가 도움이 필요한 경우
 - **Issues 탭**에서 새로운 이슈 생성
 - **로그 전체 내용** 포함
-- **사용한 워크플로 명시**
 - **환경 정보** 제공
+
+## 장점
+
+이 간소화된 시스템의 장점:
+- ✅ **단순함**: 하나의 워크플로우로 모든 요구사항 충족
+- ✅ **빠름**: 불필요한 복잡성 제거로 빌드 시간 단축
+- ✅ **안정성**: 검증된 패턴과 최소한의 설정
+- ✅ **유지보수성**: 관리해야 할 파일 수 감소
 
 ## ✅ 체크리스트
 
@@ -184,4 +180,4 @@ GitHub Repository Settings → Secrets에 추가:
 
 ---
 
-**이 가이드로 안정적이고 오류 없는 APK 빌드가 가능합니다!** 🎉
+**이 간소화된 가이드로 빠르고 안정적인 APK 빌드가 가능합니다!** 🎉
