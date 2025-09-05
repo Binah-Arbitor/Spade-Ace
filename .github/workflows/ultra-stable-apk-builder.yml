@@ -287,7 +287,7 @@ jobs:
           EOF
 
       - name: 📤 Upload ultra-stable APKs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: SpadeAce-Ultra-Stable-APKs-${{ github.run_number }}
