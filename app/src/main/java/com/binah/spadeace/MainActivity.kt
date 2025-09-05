@@ -49,38 +49,51 @@ class MainActivity : AppCompatActivity() {
         binding.viewPager.adapter = adapter
         
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.decryption_attack)
-                1 -> "Text Decryption"
-                2 -> getString(R.string.file_operations)  
-                3 -> getString(R.string.settings)
-                else -> ""
+            when (position) {
+                0 -> {
+                    tab.text = getString(R.string.decryption_attack)
+                    tab.setIcon(R.drawable.ic_security_24)
+                }
+                1 -> {
+                    tab.text = "Text Decryption"
+                    tab.setIcon(R.drawable.ic_text_fields_24)
+                }
+                2 -> {
+                    tab.text = getString(R.string.file_operations)
+                    tab.setIcon(R.drawable.ic_folder_24)
+                }
+                3 -> {
+                    tab.text = getString(R.string.settings)
+                    tab.setIcon(R.drawable.ic_settings_24)
+                }
+                else -> {
+                    tab.text = ""
+                    // Don't set icon for invalid positions
+                }
             }
-            tab.setIcon(when (position) {
-                0 -> R.drawable.ic_security_24
-                1 -> R.drawable.ic_text_fields_24
-                2 -> R.drawable.ic_folder_24
-                3 -> R.drawable.ic_settings_24
-                else -> 0
-            })
         }.attach()
     }
     
     private fun observeTheme() {
         lifecycleScope.launch {
-            viewModel.themeMode.collect { themeMode ->
-                // Handle theme changes if needed
-                when (themeMode) {
-                    ThemePreferences.THEME_MODE_LIGHT -> {
-                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
-                    }
-                    ThemePreferences.THEME_MODE_DARK -> {
-                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
-                    }
-                    else -> {
-                        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            try {
+                viewModel.themeMode.collect { themeMode ->
+                    // Handle theme changes if needed
+                    when (themeMode) {
+                        ThemePreferences.THEME_MODE_LIGHT -> {
+                            delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                        }
+                        ThemePreferences.THEME_MODE_DARK -> {
+                            delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                        }
+                        else -> {
+                            delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                // Handle theme observation errors gracefully
+                delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
         }
     }

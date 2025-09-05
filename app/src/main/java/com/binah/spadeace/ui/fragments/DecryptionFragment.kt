@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.binah.spadeace.data.AttackType
 import com.binah.spadeace.databinding.FragmentDecryptionBinding
+import com.binah.spadeace.ui.Constants
 import com.binah.spadeace.ui.MainViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -20,7 +21,7 @@ import java.io.File
 class DecryptionFragment : Fragment() {
     
     private var _binding: FragmentDecryptionBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = _binding ?: throw IllegalStateException("Fragment binding is null")
     
     private val viewModel: MainViewModel by activityViewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
@@ -29,12 +30,32 @@ class DecryptionFragment : Fragment() {
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val uri = result.data?.data
-            uri?.let { 
-                val file = File(uri.path ?: "")
-                viewModel.updateTargetFile(file)
+        try {
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val uri = result.data?.data
+                uri?.let { 
+                    val path = uri.path
+                    if (!path.isNullOrEmpty()) {
+                        val file = File(path)
+                        if (file.exists() && file.canRead()) {
+                            // Additional safety check for file size
+                            if (file.length() > Constants.MAX_FILE_SIZE_BYTES) {
+                                Toast.makeText(requireContext(), Constants.ERROR_FILE_TOO_LARGE, Toast.LENGTH_SHORT).show()
+                                return@registerForActivityResult
+                            }
+                            viewModel.updateTargetFile(file)
+                        } else {
+                            Toast.makeText(requireContext(), "Cannot access selected file", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), Constants.ERROR_INVALID_FILE_PATH, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
+        } catch (e: SecurityException) {
+            Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error selecting file: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -73,15 +94,27 @@ class DecryptionFragment : Fragment() {
         
         // Action buttons
         binding.buttonAnalyze.setOnClickListener {
-            viewModel.analyzeFile()
+            try {
+                viewModel.analyzeFile()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error analyzing file: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
         
         binding.buttonStartAttack.setOnClickListener {
-            viewModel.startAttack()
+            try {
+                viewModel.startAttack()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error starting attack: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
         
         binding.buttonStopAttack.setOnClickListener {
-            viewModel.stopAttack()
+            try {
+                viewModel.stopAttack()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error stopping attack: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
