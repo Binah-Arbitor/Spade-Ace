@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -34,8 +35,21 @@ class TextDecryptionFragment : Fragment() {
     }
     
     private fun setupUI() {
-        binding.textTitle.text = "Text Decryption"
-        binding.textDescription.text = "Decrypt encrypted text and messages"
+        binding.buttonDecryptText.setOnClickListener {
+            val encryptedText = binding.editEncryptedText.text.toString()
+            
+            if (encryptedText.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter encrypted text", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            // For demonstration, just show a mock decrypted text
+            // In a real implementation, this would call the viewModel for actual decryption
+            val mockDecryptedText = "Decrypted: ${encryptedText.reversed()}"
+            binding.editDecryptedText.setText(mockDecryptedText)
+            
+            Toast.makeText(requireContext(), "Text decrypted (mock)", Toast.LENGTH_SHORT).show()
+        }
     }
     
     override fun onDestroyView() {
