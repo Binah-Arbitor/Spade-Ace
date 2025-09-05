@@ -75,7 +75,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _attackConfig.value = _attackConfig.value.copy(hardwareAcceleration = acceleration)
     }
     
-    fun updateGpuAcceleration(enabled: Boolean) {
+    fun updateKeyDerivationMethod(method: KeyDerivationMethod) {
+        _attackConfig.value = _attackConfig.value.copy(keyDerivationMethod = method)
+    }
+    
+    fun updateMaskPattern(pattern: String) {
+        _attackConfig.value = _attackConfig.value.copy(maskPattern = pattern)
+    }
+    
+    fun updateRainbowTableFile(file: File?) {
+        _attackConfig.value = _attackConfig.value.copy(rainbowTableFile = file)
+    }
+    
+    fun updateRuleFile(file: File?) {
+        _attackConfig.value = _attackConfig.value.copy(ruleFile = file)
+
+      fun updateGpuAcceleration(enabled: Boolean) {
         _attackConfig.value = _attackConfig.value.copy(enableGpuAcceleration = enabled)
     }
     
@@ -85,6 +100,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun isHardwareAccelerationSupported(): Boolean {
         return gpuDetector.isHardwareAccelerationSupported()
+
     }
     
     fun startAttack() {

@@ -8,16 +8,29 @@ data class AttackConfiguration(
     val maxPasswordLength: Int = 8,
     val characterSet: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     val dictionaryFile: File? = null,
+    val rainbowTableFile: File? = null,
+    val maskPattern: String = "?l?l?l?l?d?d?d?d", // ?l=lowercase, ?u=uppercase, ?d=digit, ?s=special
+    val ruleFile: File? = null,
     val threadCount: Int = Runtime.getRuntime().availableProcessors(),
     val chunkSize: Int = 1024 * 1024, // 1MB chunks
     val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH,
     val hardwareAcceleration: HardwareAcceleration = HardwareAcceleration.CPU_ONLY,
+    val enableGpuAcceleration: Boolean = false,
+    val keyDerivationMethod: KeyDerivationMethod = KeyDerivationMethod.SHA256_SIMPLE,
+    val enableSmartPatterns: Boolean = true,
+    val commonPasswordsFirst: Boolean = true,
+    val skipWeakCombinations: Boolean = false
     val enableGpuAcceleration: Boolean = false
 )
 
 enum class AttackType {
     BRUTE_FORCE,
-    DICTIONARY_ATTACK
+    DICTIONARY_ATTACK,
+    RAINBOW_TABLE,
+    HYBRID_ATTACK,
+    MASK_ATTACK,
+    RULE_BASED_ATTACK,
+    SMART_BRUTE_FORCE
 }
 
 enum class OptimizationLevel {
@@ -33,6 +46,16 @@ enum class HardwareAcceleration {
     HYBRID_MODE
 }
 
+enum class KeyDerivationMethod {
+    SHA256_SIMPLE,
+    PBKDF2,
+    SCRYPT,
+    ARGON2,
+    BCRYPT
+}
+
+data class GpuInfo(
+    val name: String = "Unknown",
 data class GpuInfo(
     val renderer: String = "Unknown",
     val vendor: String = "Unknown", 
