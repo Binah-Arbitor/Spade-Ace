@@ -71,23 +71,52 @@
 
 ### 빌드 방법
 
-#### 자동 빌드 (권장)
-최신 APK는 GitHub Actions를 통해 자동으로 빌드됩니다:
-- **디버그 APK**: [Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/build-apk.yml)에서 다운로드
+#### 🚀 안정적인 자동 빌드 (권장)
+이 프로젝트는 다양한 상황에 대응하는 **4가지 안정적인 APK 빌더**를 제공합니다:
+
+1. **🚀 Stable APK Builder** - 일반적인 프로덕션 빌드 (권장)
+2. **🔧 Ultra-Stable APK Builder** - 최대 안정성과 네트워크 진단
+3. **🔄 Fallback APK Builder** - 메인 빌더 실패 시 백업
+4. **🌐 Offline APK Builder** - 네트워크 제한 환경용
+
+**사용 방법**:
+- [GitHub Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions) 페이지로 이동
+- 원하는 워크플로 선택 후 "Run workflow" 클릭
+- 빌드 타입 선택 (debug/release/both)
+
+**다운로드**:
+- **디버그 APK**: [Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions)에서 다운로드
 - **릴리즈 APK**: [Releases](https://github.com/Binah-Arbitor/Spade-Ace/releases) 페이지에서 다운로드
 
 #### 로컬 빌드
+
+**빌드 상태 확인** (권장):
 ```bash
 # 프로젝트 클론
 git clone https://github.com/Binah-Arbitor/Spade-Ace.git
 cd Spade-Ace
 
-# 디버그 빌드
-./gradlew assembleDebug
-
-# 릴리즈 빌드
-./gradlew assembleRelease
+# 빌드 환경 상태 확인 및 권장사항 확인
+./check-builder-status.sh
 ```
+
+**안정적인 로컬 빌드**:
+```bash
+# 자동화된 안전한 빌드 (권장)
+./build-apk.sh both      # debug와 release 모두
+./build-apk.sh debug     # debug만
+./build-apk.sh release   # release만
+
+# 직접 Gradle 사용
+./gradlew clean
+./gradlew assembleDebug    # 디버그 빌드
+./gradlew assembleRelease  # 릴리즈 빌드
+```
+
+**문제 해결**:
+- 빌드 실패 시 `Ultra-Stable APK Builder` 워크플로 사용
+- 네트워크 문제 시 `Offline APK Builder` 사용
+- 자세한 가이드: [APK_BUILDER_GUIDE.md](APK_BUILDER_GUIDE.md)
 
 ### 사용법
 1. **파일 선택**: 복호화할 대상 파일 선택
