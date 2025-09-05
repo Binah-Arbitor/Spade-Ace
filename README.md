@@ -1,8 +1,6 @@
 # Spade Ace - 고성능 복호화 공격 도구
 
-[![APK Builder](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/apk-builder.yml/badge.svg)](https://github.com/Binah-Arbitor/Spade-Ace/actions/workflows/apk-builder.yml)
-
-**Spade Ace**는 코틀린 기반의 안드로이드 애플리케이션으로, 파일 및 디스크 복호화 공격을 위한 최적화된 도구입니다. 사용하기 쉬운 알고리즘과 다양한 조정 옵션을 제공하며, Android 21+를 대상으로 성능에 집중한 깔끔한 UI를 갖추고 있습니다.
+**Spade Ace**는 QT/C++ 기반의 크로스 플랫폼 애플리케이션으로, 파일 및 디스크 복호화 공격을 위한 최적화된 도구입니다. 사용하기 쉬운 알고리즘과 다양한 조정 옵션을 제공하며, Windows, Linux, macOS를 지원하는 성능에 집중한 깔끔한 UI를 갖추고 있습니다.
 
 ## 주요 기능
 
@@ -42,10 +40,10 @@
 - **실시간 GPU 정보**: 현재 GPU 상태 및 성능 정보 표시
 
 ### 🎨 사용자 인터페이스
-- **Material Design 3**: 현대적이고 직관적인 UI/UX
+- **QT Widgets**: 현대적이고 직관적인 네이티브 UI/UX
 - **3개 탭 구조**: 복호화 공격, 파일 관리, 설정
 - **실시간 파일 브라우저**: 타겟 파일 쉬운 선택
-- **다크/라이트 테마 지원**: 자동 테마 전환
+- **다크 테마 지원**: 깔끔한 어두운 인터페이스
 
 ### 📁 파일 관리
 - **통합 파일 브라우저**: 암호화된 파일 탐색 및 관리
@@ -55,67 +53,84 @@
 
 ## 시스템 요구사항
 
-- **Android 버전**: Android 5.0 (API 21) 이상
-- **메모리**: 최소 1GB RAM 권장 (GPU 가속 시 2GB 권장)
-- **저장공간**: 50MB 이상
-- **권한**: 외부 저장소 읽기/쓰기, 인터넷 (선택사항)
-- **GPU 지원** (선택사항): 
-  - Qualcomm Adreno 630+
-  - ARM Mali-G76+
-  - PowerVR Series 6+
-  - NVIDIA Tegra
-  - OpenGL ES 3.1+ 또는 Vulkan API
+- **운영체제**: Windows 10+, Ubuntu 18.04+, macOS 10.14+
+- **QT 버전**: QT 6.0 이상
+- **컴파일러**: 
+  - Windows: MSVC 2019+ 또는 MinGW 8.1+
+  - Linux: GCC 7+ 또는 Clang 8+
+  - macOS: Xcode 11+ (Clang)
+- **메모리**: 최소 2GB RAM 권장 (GPU 가속 시 4GB 권장)
+- **저장공간**: 100MB 이상
+- **추가 라이브러리**: OpenSSL 1.1.1+
 
 ## 설치 및 사용
 
 ### 빌드 방법
 
-#### 🚀 간단한 APK 빌드 (권장)
-이 프로젝트는 **단일 통합 APK 빌더**를 제공합니다:
-
-**APK Builder** - 깔끔하고 효율적인 통합 빌더
-- 간단한 설정과 빠른 빌드
-- 디버그/릴리즈 APK 빌드 지원
-- 안정적이고 유지보수가 쉬운 구조
+#### 🚀 QT Creator를 사용한 빌드 (권장)
+**QT Creator** - 간단하고 효율적인 통합 개발환경
 
 **사용 방법**:
-- [GitHub Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions) 페이지로 이동
-- "APK Builder" 워크플로 선택 후 "Run workflow" 클릭
-- 빌드 타입 선택 (debug/release/both)
+1. QT Creator 설치 (Qt 6.0 이상)
+2. 프로젝트 열기: `SpadeAce.pro` 또는 `CMakeLists.txt`
+3. 빌드 구성 선택 (Debug/Release)
+4. 빌드 실행 (Ctrl+B)
 
-**다운로드**:
-- **디버그 APK**: [Actions](https://github.com/Binah-Arbitor/Spade-Ace/actions)에서 다운로드
-- **릴리즈 APK**: [Releases](https://github.com/Binah-Arbitor/Spade-Ace/releases) 페이지에서 다운로드
+#### 명령행 빌드
 
-#### 로컬 빌드
-
-**빌드 상태 확인** (권장):
+**CMake 사용 (권장)**:
 ```bash
 # 프로젝트 클론
 git clone https://github.com/Binah-Arbitor/Spade-Ace.git
 cd Spade-Ace
 
-# 빌드 환경 상태 확인 및 권장사항 확인
-./check-builder-status.sh
+# 빌드 디렉토리 생성
+mkdir build && cd build
+
+# CMake 구성
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# 빌드
+cmake --build . --config Release
+
+# 실행
+./SpadeAce
 ```
 
-**안정적인 로컬 빌드**:
+**qmake 사용**:
 ```bash
-# 자동화된 안전한 빌드 (권장)
-./build-apk.sh both      # debug와 release 모두
-./build-apk.sh debug     # debug만
-./build-apk.sh release   # release만
+# 프로젝트 클론
+git clone https://github.com/Binah-Arbitor/Spade-Ace.git
+cd Spade-Ace
 
-# 직접 Gradle 사용
-./gradlew clean
-./gradlew assembleDebug    # 디버그 빌드
-./gradlew assembleRelease  # 릴리즈 빌드
+# qmake 빌드
+qmake SpadeAce.pro
+make
+
+# 실행
+./SpadeAce
 ```
 
-**문제 해결**:
-- 빌드 실패 시 Actions 탭에서 로그 확인
-- 캐시 문제 시 Gradle 캐시 삭제 후 재실행
-- 자세한 가이드: [APK_BUILDER_GUIDE.md](APK_BUILDER_GUIDE.md)
+**의존성 설치**:
+
+**Ubuntu/Debian**:
+```bash
+sudo apt-get install qt6-base-dev qt6-tools-dev-tools libssl-dev
+```
+
+**CentOS/RHEL/Fedora**:
+```bash
+sudo dnf install qt6-qtbase-devel qt6-qttools-devel openssl-devel
+```
+
+**macOS** (Homebrew):
+```bash
+brew install qt6 openssl
+```
+
+**Windows**:
+- QT Online Installer에서 QT 6.x 설치
+- OpenSSL for Windows 설치
 
 ### 사용법
 1. **파일 선택**: 복호화할 대상 파일 선택
@@ -138,50 +153,42 @@ cd Spade-Ace
 ## 기술 스택
 
 ### 핵심 기술
-- **언어**: Kotlin 100%
-- **UI 프레임워크**: Jetpack Compose
-- **암호화 라이브러리**: BouncyCastle
-- **동시성**: Kotlin Coroutines
-- **아키텍처**: MVVM with StateFlow
+- **언어**: C++ 17
+- **UI 프레임워크**: QT 6 Widgets
+- **암호화 라이브러리**: OpenSSL
+- **동시성**: QT 멀티스레딩 (QThread)
+- **아키텍처**: 객체지향 설계
 
 ### 주요 의존성
-```gradle
-// UI 및 컴포즈
-androidx.compose.ui:ui
-androidx.compose.material3:material3
-androidx.activity:activity-compose
+```cmake
+# QT 모듈
+Qt6::Core
+Qt6::Widgets
 
-// 생명주기 및 뷰모델
-androidx.lifecycle:lifecycle-viewmodel-compose
-androidx.lifecycle:lifecycle-runtime-ktx
-
-// 암호화 및 보안
-org.bouncycastle:bcprov-jdk15on
-commons-codec:commons-codec
-
-// 동시성
-org.jetbrains.kotlinx:kotlinx-coroutines-android
+# 암호화
+OpenSSL::SSL
+OpenSSL::Crypto
 ```
 
 ## 프로젝트 구조
 
 ```
-app/src/main/java/com/binah/spadeace/
+src/
 ├── core/
-│   └── DecryptionEngine.kt      # 핵심 복호화 엔진
+│   ├── DecryptionEngine.h/cpp    # 핵심 복호화 엔진
+│   └── CryptoUtils.h/cpp         # 암호화 유틸리티
 ├── data/
-│   └── Models.kt                # 데이터 모델 및 설정
+│   └── Models.h/cpp              # 데이터 모델 및 설정
 ├── ui/
-│   ├── screens/
-│   │   ├── DecryptionScreen.kt  # 복호화 공격 화면
-│   │   ├── FileOperationsScreen.kt # 파일 관리 화면
-│   │   └── SettingsScreen.kt    # 설정 화면
-│   ├── theme/
-│   │   ├── Theme.kt            # 앱 테마 정의
-│   │   └── Type.kt             # 타이포그래피 설정
-│   ├── MainViewModel.kt        # 메인 뷰모델
-│   └── SpadeAceApp.kt         # 메인 앱 컴포저블
-└── MainActivity.kt             # 메인 액티비티
+│   ├── DecryptionWindow.h/cpp    # 복호화 공격 화면
+│   ├── FileOperationsWindow.h/cpp # 파일 관리 화면
+│   └── SettingsWindow.h/cpp      # 설정 화면
+├── MainWindow.h/cpp              # 메인 창
+└── main.cpp                      # 애플리케이션 진입점
+
+# 빌드 설정
+├── CMakeLists.txt               # CMake 빌드 설정
+└── SpadeAce.pro                 # QMake 빌드 설정
 ```
 
 ## 보안 주의사항
@@ -234,9 +241,9 @@ app/src/main/java/com/binah/spadeace/
 
 ## 감사의 글
 
-- [BouncyCastle](https://www.bouncycastle.org/) - 암호화 라이브러리 제공
-- [Android Jetpack Compose](https://developer.android.com/jetpack/compose) - 현대적인 UI 프레임워크
-- [Kotlin](https://kotlinlang.org/) - 우아하고 간결한 프로그래밍 언어
+- [OpenSSL](https://www.openssl.org/) - 암호화 라이브러리 제공
+- [QT Framework](https://www.qt.io/) - 현대적인 크로스플랫폼 UI 프레임워크
+- [C++](https://isocpp.org/) - 고성능 시스템 프로그래밍 언어
 
 ---
 

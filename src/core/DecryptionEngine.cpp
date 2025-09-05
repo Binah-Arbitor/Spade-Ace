@@ -4,6 +4,10 @@
 #include <QCryptographicHash>
 #include <QRandomGenerator>
 #include <QDebug>
+#include <QDateTime>
+#include <QFile>
+#include <QTextStream>
+#include <QThread>
 
 DecryptionEngine::DecryptionEngine(QObject *parent)
     : QObject(parent)

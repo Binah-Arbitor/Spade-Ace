@@ -1,0 +1,107 @@
+name: Build Qt Application
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+        - Release
+        - Debug
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        qt_version: [6.5.0]
+        
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ matrix.qt_version }}
+        host: ${{ runner.os }}
+        target: desktop
+        arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2019_64' || '' }}
+        modules: 'qtbase qttools'
+        
+    - name: Install OpenSSL (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libssl-dev
+        
+    - name: Install OpenSSL (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install openssl
+        
+    - name: Install OpenSSL (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install openssl
+        
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type || 'Release' }}
+        
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config ${{ github.event.inputs.build_type || 'Release' }}
+        
+    - name: Package (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd build
+        tar -czf SpadeAce-linux-x64.tar.gz SpadeAce
+        
+    - name: Package (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build
+        windeployqt.exe --dir SpadeAce-win64 SpadeAce.exe
+        7z a SpadeAce-win64.zip SpadeAce-win64/
+        
+    - name: Package (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd build
+        macdeployqt SpadeAce.app -dmg
+        mv SpadeAce.dmg SpadeAce-macos.dmg
+        
+    - name: Upload artifacts (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: SpadeAce-Linux
+        path: build/SpadeAce-linux-x64.tar.gz
+        
+    - name: Upload artifacts (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: SpadeAce-Windows
+        path: build/SpadeAce-win64.zip
+        
+    - name: Upload artifacts (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: SpadeAce-macOS
+        path: build/SpadeAce-macos.dmg

@@ -1,53 +1,136 @@
-# Material3 to Material2 Migration Summary
+# Android to QT Framework Migration Summary
 
 ## Problem Statement
-The original error was:
+Based on the request: "UI관련 부분을 전부 지우고 깔끔하게 재작성해줘. QT기반으로"
+
+The original project was an Android application using Kotlin and Jetpack Compose. The requirement was to completely rewrite the UI using QT framework for a clean, cross-platform desktop application.
+
+## Solution: Complete Migration to QT/C++
+
+### Why QT?
+1. **Cross-Platform**: Runs on Windows, Linux, macOS
+2. **Native Performance**: C++ provides better performance for cryptographic operations
+3. **Modern UI**: QT Widgets provide a clean, modern interface
+4. **Better Threading**: QT's threading model is excellent for parallel processing
+5. **Professional Look**: Native desktop experience
+
+### Migration Overview
+
+#### 1. Framework Change
+- **From**: Android/Kotlin/Jetpack Compose
+- **To**: QT6/C++/QT Widgets
+- **Build System**: CMake and QMake support
+
+#### 2. Architecture Changes
+- **From**: MVVM with StateFlow (Android)
+- **To**: Object-oriented with QT signals/slots
+- **Threading**: Kotlin Coroutines → QThread workers
+- **UI**: Jetpack Compose → QT Widgets
+
+#### 3. Core Components Ported
+
+##### UI Components
+- `MainActivity.kt` → `MainWindow.h/cpp` - Main application window
+- `SpadeAceApp.kt` → `MainWindow.cpp` - Tab-based interface
+- `DecryptionScreen.kt` → `DecryptionWindow.h/cpp` - Attack configuration UI
+- `FileOperationsScreen.kt` → `FileOperationsWindow.h/cpp` - File browser
+- `SettingsScreen.kt` → `SettingsWindow.h/cpp` - Settings interface
+- `TextDecryptionScreen.kt` → Integrated into DecryptionWindow
+
+##### Core Logic
+- `DecryptionEngine.kt` → `DecryptionEngine.h/cpp` - Multi-threaded attack engine
+- `Models.kt` → `Models.h/cpp` - Data structures and enums
+- `GpuDetector.kt` → Integrated into SettingsWindow
+- New: `CryptoUtils.h/cpp` - Encryption utilities
+
+#### 4. Technology Stack Changes
+
+| Component | Android | QT |
+|-----------|---------|-----|
+| Language | Kotlin | C++17 |
+| UI Framework | Jetpack Compose | QT6 Widgets |
+| Build System | Gradle | CMake/QMake |
+| Crypto Library | BouncyCastle | OpenSSL |
+| Threading | Coroutines | QThread |
+| Packaging | APK | Native executables |
+
+#### 5. File Structure Changes
+
+**Before (Android)**:
 ```
-error: resource style/Theme.Material3.DayNight (aka com.binah.spadeace.debug:style/Theme.Material3.DayNight) not found
+app/src/main/java/com/binah/spadeace/
+├── ui/screens/          # Compose screens
+├── ui/theme/           # Material theme
+├── core/               # Business logic
+├── data/               # Data models
+└── MainActivity.kt     # Entry point
 ```
 
-This error occurred because Material3 doesn't have a built-in DayNight theme like Material2 does.
+**After (QT)**:
+```
+src/
+├── core/               # Business logic (C++)
+├── data/               # Data models (C++)
+├── ui/                 # Window classes
+├── MainWindow.h/cpp    # Main window
+└── main.cpp           # Entry point
+```
 
-## Solution: Complete Migration to Material2
+#### 6. Build System Migration
 
-### Why Material2?
-1. **Built-in DayNight Support**: `Theme.Material.DayNight` automatically handles light/dark theme switching
-2. **Better Stability**: More mature library with broader Android version compatibility
-3. **Simpler Theme Management**: Automatic theme inheritance reduces configuration complexity
-4. **Proven Reliability**: Material2 has been tested extensively across different devices and Android versions
+**Removed**:
+- `build.gradle`, `settings.gradle`
+- `gradlew`, `gradle.properties`
+- Android manifest and resources
+- APK build scripts
 
-### Changes Made
+**Added**:
+- `CMakeLists.txt` - CMake build configuration
+- `SpadeAce.pro` - QMake project file
+- `.github/workflows/build-qt.yml` - Cross-platform CI/CD
 
-#### 1. Build Configuration
-- **File**: `app/build.gradle`
-- **Change**: `implementation 'androidx.compose.material3:material3'` → `implementation 'androidx.compose.material:material'`
-- **Also**: Updated compiler opt-in from `ExperimentalMaterial3Api` to `ExperimentalMaterialApi`
+#### 7. Features Preserved
 
-#### 2. XML Theme Definitions  
-- **Files**: `app/src/main/res/values/themes.xml`, `app/src/main/res/values-night/themes.xml`
-- **Change**: `Theme.Material3.Light`/`Theme.Material3.Dark` → `Theme.Material.DayNight`
-- **Benefit**: Single theme with automatic light/dark switching
+All core functionality has been preserved:
+- ✅ 7 attack types (Brute Force, Dictionary, etc.)
+- ✅ Multi-threading support
+- ✅ File browser and operations
+- ✅ Performance settings and optimization
+- ✅ Hardware acceleration options
+- ✅ Real-time progress tracking
+- ✅ Dark theme interface
 
-#### 3. Color System Migration
-- **File**: `app/src/main/res/values/colors.xml`
-- **Change**: Added missing dark theme color definitions
-- **Mapping**: Material3 colors → Material2 equivalents
+#### 8. New Capabilities
 
-#### 4. Kotlin Theme System
-- **File**: `app/src/main/java/com/binah/spadeace/ui/theme/Theme.kt`
-- **Change**: `darkColorScheme`/`lightColorScheme` → `darkColors`/`lightColors`
-- **API**: `MaterialTheme(colorScheme = ...)` → `MaterialTheme(colors = ...)`
+QT version adds:
+- ✅ Cross-platform support (Windows/Linux/macOS)
+- ✅ Better performance with native C++
+- ✅ Professional desktop UI experience
+- ✅ Better memory management
+- ✅ Native file system integration
 
-#### 5. Typography System
-- **File**: `app/src/main/java/com/binah/spadeace/ui/theme/Type.kt`
-- **Change**: Material3 typography → Material2 typography
-- **Mapping**: `bodyLarge` → `body1`, etc.
+### Build Instructions
 
-#### 6. UI Components Migration
-Updated all screen files with these mappings:
-- `MaterialTheme.colorScheme.*` → `MaterialTheme.colors.*`
-- `MaterialTheme.typography.headlineSmall` → `MaterialTheme.typography.h6`
-- `MaterialTheme.typography.bodyMedium` → `MaterialTheme.typography.body1`
+**Prerequisites**:
+- QT 6.0+
+- CMake 3.16+
+- OpenSSL 1.1.1+
+- C++17 compliant compiler
+
+**Build Commands**:
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release
+```
+
+### Migration Benefits
+
+1. **Performance**: C++ provides better cryptographic performance
+2. **Cross-Platform**: Works on all major desktop platforms
+3. **Native Experience**: Better integration with desktop environments
+4. **Maintainability**: Cleaner, more structured codebase
+5. **Professional**: Desktop application suitable for professional use
 - `NavigationBar` → `BottomNavigation`
 - `containerColor` → `backgroundColor`
 
