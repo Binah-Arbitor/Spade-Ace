@@ -14,7 +14,7 @@ import com.binah.spadeace.ui.MainViewModel
 class TextDecryptionFragment : Fragment() {
     
     private var _binding: FragmentTextDecryptionBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = _binding ?: throw IllegalStateException("Fragment binding is null")
     
     private val viewModel: MainViewModel by activityViewModels {
         ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
@@ -36,19 +36,29 @@ class TextDecryptionFragment : Fragment() {
     
     private fun setupUI() {
         binding.buttonDecryptText.setOnClickListener {
-            val encryptedText = binding.editEncryptedText.text.toString()
-            
-            if (encryptedText.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter encrypted text", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            try {
+                val encryptedText = binding.editEncryptedText.text?.toString()?.trim()
+                
+                if (encryptedText.isNullOrEmpty()) {
+                    Toast.makeText(requireContext(), "Please enter encrypted text", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                
+                // Validate input length to prevent excessive processing
+                if (encryptedText.length > 10000) {
+                    Toast.makeText(requireContext(), "Text too long (max 10,000 characters)", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                
+                // For demonstration, just show a mock decrypted text
+                // In a real implementation, this would call the viewModel for actual decryption
+                val mockDecryptedText = "Decrypted: ${encryptedText.reversed()}"
+                binding.editDecryptedText.setText(mockDecryptedText)
+                
+                Toast.makeText(requireContext(), "Text decrypted (mock)", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error processing text: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-            
-            // For demonstration, just show a mock decrypted text
-            // In a real implementation, this would call the viewModel for actual decryption
-            val mockDecryptedText = "Decrypted: ${encryptedText.reversed()}"
-            binding.editDecryptedText.setText(mockDecryptedText)
-            
-            Toast.makeText(requireContext(), "Text decrypted (mock)", Toast.LENGTH_SHORT).show()
         }
     }
     

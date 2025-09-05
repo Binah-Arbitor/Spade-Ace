@@ -5,14 +5,14 @@ import java.io.File
 data class AttackConfiguration(
     val attackType: AttackType = AttackType.BRUTE_FORCE,
     val targetFile: File? = null,
-    val maxPasswordLength: Int = 8,
+    val maxPasswordLength: Int = 8.coerceIn(1, 20),
     val characterSet: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     val dictionaryFile: File? = null,
     val rainbowTableFile: File? = null,
     val maskPattern: String = "?l?l?l?l?d?d?d?d", // ?l=lowercase, ?u=uppercase, ?d=digit, ?s=special
     val ruleFile: File? = null,
-    val threadCount: Int = Runtime.getRuntime().availableProcessors(),
-    val chunkSize: Int = 1024 * 1024, // 1MB chunks
+    val threadCount: Int = Runtime.getRuntime().availableProcessors().coerceIn(1, 32),
+    val chunkSize: Int = (1024 * 1024).coerceIn(1024, 10 * 1024 * 1024), // 1KB to 10MB chunks
     val optimizationLevel: OptimizationLevel = OptimizationLevel.HIGH,
     val hardwareAcceleration: HardwareAcceleration = HardwareAcceleration.CPU_ONLY,
     val enableGpuAcceleration: Boolean = false,
@@ -20,7 +20,23 @@ data class AttackConfiguration(
     val enableSmartPatterns: Boolean = true,
     val commonPasswordsFirst: Boolean = true,
     val skipWeakCombinations: Boolean = false
-)
+) {
+    // Validation functions
+    fun isValid(): Boolean {
+        return maxPasswordLength in 1..20 &&
+               threadCount in 1..32 &&
+               chunkSize >= 1024 &&
+               characterSet.isNotEmpty()
+    }
+    
+    fun withValidatedValues(): AttackConfiguration {
+        return copy(
+            maxPasswordLength = maxPasswordLength.coerceIn(1, 20),
+            threadCount = threadCount.coerceIn(1, 32),
+            chunkSize = chunkSize.coerceAtLeast(1024)
+        )
+    }
+}
 
 enum class AttackType {
     BRUTE_FORCE,
@@ -70,7 +86,11 @@ data class AttackResult(
     val timeElapsed: Long = 0,
     val attemptsCount: Long = 0,
     val errorMessage: String? = null
-)
+) {
+    fun isValid(): Boolean {
+        return timeElapsed >= 0 && attemptsCount >= 0
+    }
+}
 
 data class AttackProgress(
     val currentAttempt: String = "",
@@ -78,7 +98,15 @@ data class AttackProgress(
     val progress: Float = 0f,
     val estimatedTimeRemaining: Long = 0,
     val isRunning: Boolean = false
-)
+) {
+    fun withSafeValues(): AttackProgress {
+        return copy(
+            attemptsCount = attemptsCount.coerceAtLeast(0),
+            progress = progress.coerceIn(0f, 1f),
+            estimatedTimeRemaining = estimatedTimeRemaining.coerceAtLeast(0)
+        )
+    }
+}
 
 data class EncryptionAnalysis(
     val possibleAlgorithms: List<String> = emptyList(),

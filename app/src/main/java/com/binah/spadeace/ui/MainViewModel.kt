@@ -51,6 +51,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _attackConfig.value = config
     }
     
+    fun updateTargetFile(file: File?) {
+        _attackConfig.value = _attackConfig.value.copy(targetFile = file)
+    }
+    
+    fun updateAttackType(attackType: AttackType) {
+        _attackConfig.value = _attackConfig.value.copy(attackType = attackType)
+    }
+    
+    fun updateOptimizationLevel(level: OptimizationLevel) {
+        _attackConfig.value = _attackConfig.value.copy(optimizationLevel = level)
+    }
+    
+    fun startAttack() {
+        // Implement attack logic - for safety, just set running state for now
+        _isAttackRunning.value = true
+        _attackProgress.value = _attackProgress.value.copy(isRunning = true)
+    }
+    
     fun updateTargetFile(file: File) {
         _attackConfig.value = _attackConfig.value.copy(targetFile = file)
     }
@@ -152,9 +170,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun analyzeFile() {
         val file = _attackConfig.value.targetFile
+        if (file == null) {
+            _encryptionAnalysis.value = EncryptionAnalysis(
+                analysisNotes = listOf("No file selected for analysis")
+            )
+            return
+        }
+        
         viewModelScope.launch {
-            val analysis = decryptionEngine.analyzeFile(file)
-            _encryptionAnalysis.value = analysis
+            try {
+                val analysis = decryptionEngine.analyzeFile(file)
+                _encryptionAnalysis.value = analysis
+            } catch (e: Exception) {
+                _encryptionAnalysis.value = EncryptionAnalysis(
+                    analysisNotes = listOf("Error analyzing file: ${e.message}")
+                )
+            }
         }
     }
     
