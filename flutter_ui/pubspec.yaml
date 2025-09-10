@@ -1,0 +1,63 @@
+name: spade_ace_ui
+description: High-performance file encryption/decryption utility with PCB/cyber-tech aesthetics
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI and Material Design
+  cupertino_icons: ^1.0.6
+  
+  # State management and architecture
+  provider: ^6.1.1
+  
+  # File operations
+  file_picker: ^8.0.0+1
+  path_provider: ^2.1.1
+  
+  # Async programming and isolates
+  isolate: ^2.1.2
+  
+  # System info for CPU core detection
+  device_info_plus: ^10.1.0
+  
+  # For real-time logging and streams
+  rxdart: ^0.27.7
+  
+  # JSON handling
+  json_annotation: ^4.8.1
+  
+  # UI utilities
+  flutter_staggered_animations: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_lints: ^3.0.0
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  fonts:
+    - family: FiraCode
+      fonts:
+        - asset: assets/fonts/FiraCode-Regular.ttf
+        - asset: assets/fonts/FiraCode-Bold.ttf
+          weight: 700
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+        - asset: assets/fonts/IBMPlexMono-Bold.ttf
+          weight: 700
