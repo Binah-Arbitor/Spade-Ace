@@ -1,3 +1,33 @@
+# Flutter/Dart build artifacts
+build/
+.dart_tool/
+.packages
+pubspec.lock
+
+# Test files
+test_files/
+create_test_files.py
+ui_preview.html
+demo.sh
+
+# Native C++ build artifacts
+native/cpp/build/
+*.so
+*.dll
+*.dylib
+*.a
+*.o
+
+# IDE files
+.vscode/
+.idea/
+
+# Platform specific
+*.iml
+.metadata
+.flutter-plugins
+.flutter-plugins-dependencies
+
 # Built application files
 *.apk
 *.aar
@@ -81,4 +111,4 @@ lint/tmp/
 # lint/reports/
 
 # Android Profiling
-*.hprof.bak
+*.hprof
