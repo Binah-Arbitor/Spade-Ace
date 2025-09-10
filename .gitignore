@@ -7,6 +7,8 @@ pubspec.lock
 # Test files
 test_files/
 create_test_files.py
+ui_preview.html
+demo.sh
 
 # Native C++ build artifacts
 native/cpp/build/
