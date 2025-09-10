@@ -56,7 +56,7 @@ class FileIOPanel extends StatelessWidget {
                     color: PCBColors.cardBackground.withOpacity(0.5),
                   ),
                   child: InkWell(
-                    onTap: isProcessing ? null : _selectFile,
+                    onTap: isProcessing ? null : () => _selectFile(context),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.all(24),
@@ -224,7 +224,7 @@ class FileIOPanel extends StatelessWidget {
   }
   
   /// Select file using file picker
-  Future<void> _selectFile() async {
+  Future<void> _selectFile(BuildContext context) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.any,
@@ -233,12 +233,21 @@ class FileIOPanel extends StatelessWidget {
       
       if (result != null && result.files.single.path != null) {
         final file = File(result.files.single.path!);
-        // Access provider without context in async method
-        // This would normally be handled by a proper state management approach
+        if (context.mounted) {
+          context.read<AppStateProvider>().selectFile(file);
+        }
       }
     } catch (e) {
       // Handle error - would normally show a snackbar or dialog
       debugPrint('Error selecting file: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting file: $e'),
+            backgroundColor: PCBColors.errorRed,
+          ),
+        );
+      }
     }
   }
   
