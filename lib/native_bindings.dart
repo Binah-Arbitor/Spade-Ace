@@ -152,6 +152,45 @@ typedef AlgorithmToString = Pointer<Utf8> Function(int algorithm);
 typedef ModeToStringC = Pointer<Utf8> Function(Int32 mode);
 typedef ModeToString = Pointer<Utf8> Function(int mode);
 
+// GPU-related function types
+typedef InitializeGPUC = Bool Function(Pointer<Utf8> platform);
+typedef InitializeGPU = bool Function(Pointer<Utf8> platform);
+
+typedef GetAvailableGPUPlatformsC = Pointer<Pointer<Utf8>> Function(Pointer<Int32> count);
+typedef GetAvailableGPUPlatforms = Pointer<Pointer<Utf8>> Function(Pointer<Int32> count);
+
+typedef SwitchGPUPlatformC = Bool Function(Pointer<Utf8> platform);
+typedef SwitchGPUPlatform = bool Function(Pointer<Utf8> platform);
+
+typedef GetGPUInfoC = Pointer<Utf8> Function();
+typedef GetGPUInfo = Pointer<Utf8> Function();
+
+typedef DecryptFileGPUC = Pointer<CDecryptionResult> Function(
+  Pointer<Uint8> data, 
+  Int32 size,
+  Int32 algorithm,
+  Int32 mode,
+  Int32 keySize,
+  Int32 attackMethod,
+  Pointer<NativeFunction<ProgressCallbackC>> callback
+);
+
+typedef DecryptFileGPU = Pointer<CDecryptionResult> Function(
+  Pointer<Uint8> data, 
+  int size,
+  int algorithm,
+  int mode,
+  int keySize,
+  int attackMethod,
+  Pointer<NativeFunction<ProgressCallbackC>> callback
+);
+
+typedef FreeStringC = Void Function(Pointer<Utf8> str);
+typedef FreeString = void Function(Pointer<Utf8> str);
+
+typedef FreeStringArrayC = Void Function(Pointer<Pointer<Utf8>> array, Int32 count);
+typedef FreeStringArray = void Function(Pointer<Pointer<Utf8>> array, int count);
+
 // Native bindings
 class NativeBindings {
   static final InitSpadeAce _initSpadeAce =
@@ -180,6 +219,28 @@ class NativeBindings {
   
   static final ModeToString _modeToString =
       _nativeLib.lookup<NativeFunction<ModeToStringC>>('mode_to_string').asFunction();
+  
+  // GPU-related function lookups
+  static final InitializeGPU _initializeGPU =
+      _nativeLib.lookup<NativeFunction<InitializeGPUC>>('initialize_gpu').asFunction();
+  
+  static final GetAvailableGPUPlatforms _getAvailableGPUPlatforms =
+      _nativeLib.lookup<NativeFunction<GetAvailableGPUPlatformsC>>('get_available_gpu_platforms').asFunction();
+  
+  static final SwitchGPUPlatform _switchGPUPlatform =
+      _nativeLib.lookup<NativeFunction<SwitchGPUPlatformC>>('switch_gpu_platform').asFunction();
+  
+  static final GetGPUInfo _getGPUInfo =
+      _nativeLib.lookup<NativeFunction<GetGPUInfoC>>('get_gpu_info').asFunction();
+  
+  static final DecryptFileGPU _decryptFileGPU =
+      _nativeLib.lookup<NativeFunction<DecryptFileGPUC>>('decrypt_file_gpu').asFunction();
+  
+  static final FreeString _freeString =
+      _nativeLib.lookup<NativeFunction<FreeStringC>>('free_string').asFunction();
+  
+  static final FreeStringArray _freeStringArray =
+      _nativeLib.lookup<NativeFunction<FreeStringArrayC>>('free_string_array').asFunction();
   
   static void init() => _initSpadeAce();
   static void cleanup() => _cleanupSpadeAce();
@@ -300,6 +361,47 @@ class NativeBindings {
   static void _progressCallback(double progress, Pointer<Utf8> status) {
     // This would need proper callback handling
     // For now, it's a placeholder
+  }
+  
+  // GPU-related methods
+  static bool initializeGPU({String platform = 'auto'}) {
+    final platformPtr = platform.toNativeUtf8();
+    final result = _initializeGPU(platformPtr);
+    malloc.free(platformPtr);
+    return result;
+  }
+  
+  static List<String> getAvailableGPUPlatforms() {
+    final countPtr = malloc<Int32>();
+    final platformsPtr = _getAvailableGPUPlatforms(countPtr);
+    
+    final count = countPtr.value;
+    final platforms = <String>[];
+    
+    if (count > 0 && platformsPtr.address != 0) {
+      for (int i = 0; i < count; i++) {
+        final platformPtr = platformsPtr.elementAt(i).value;
+        platforms.add(platformPtr.toDartString());
+      }
+      _freeStringArray(platformsPtr, count);
+    }
+    
+    malloc.free(countPtr);
+    return platforms;
+  }
+  
+  static bool switchGPUPlatform(String platform) {
+    final platformPtr = platform.toNativeUtf8();
+    final result = _switchGPUPlatform(platformPtr);
+    malloc.free(platformPtr);
+    return result;
+  }
+  
+  static String getGPUInfo() {
+    final result = _getGPUInfo();
+    final dartString = result.toDartString();
+    _freeString(result);
+    return dartString;
   }
 }
 

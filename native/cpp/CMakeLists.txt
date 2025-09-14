@@ -45,6 +45,7 @@ add_library(spade_ace_native SHARED
     src/attack_methods.cpp
     src/performance_manager.cpp
     src/ffi_interface.cpp
+    src/gpu_engine.cpp
 )
 
 target_include_directories(spade_ace_native PRIVATE

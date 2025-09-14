@@ -1,4 +1,5 @@
 #include "../include/crypto_engine.h"
+#include "../include/gpu_engine.h"
 #include <cryptopp/aes.h>
 #include <cryptopp/des.h>
 #include <cryptopp/blowfish.h>
@@ -14,10 +15,11 @@
 #include <chrono>
 #include <algorithm>
 #include <future>
+#include <set>
 
 using namespace CryptoPP;
 
-CryptoEngine::CryptoEngine() : should_stop_(false) {
+CryptoEngine::CryptoEngine() : should_stop_(false), gpu_engine_(std::make_unique<GPUEngine>()) {
 }
 
 CryptoEngine::~CryptoEngine() {
@@ -325,4 +327,158 @@ void CryptoEngine::cleanup_threads() {
         }
     }
     worker_threads_.clear();
+}
+
+// GPU-related implementations
+DecryptionResult CryptoEngine::decrypt_file_gpu(
+    const std::vector<uint8_t>& encrypted_data,
+    ::Algorithm algorithm,
+    Mode mode,
+    int key_size,
+    AttackMethod attack_method,
+    ProgressCallback progress_callback
+) {
+    DecryptionResult result;
+    result.success = false;
+    result.time_taken = 0.0;
+    result.attempts_made = 0;
+    
+    if (!gpu_engine_) {
+        result.error_message = "GPU engine not available";
+        return result;
+    }
+    
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    try {
+        // Convert algorithm enum to string for GPU engine
+        std::string algo_str;
+        switch (algorithm) {
+            case ::Algorithm::AES: algo_str = "AES"; break;
+            case ::Algorithm::DES: algo_str = "DES"; break;
+            case ::Algorithm::TRIPLE_DES: algo_str = "3DES"; break;
+            case ::Algorithm::BLOWFISH: algo_str = "Blowfish"; break;
+            default: algo_str = "AES"; break;
+        }
+        
+        // Convert mode enum to string
+        std::string mode_str;
+        switch (mode) {
+            case Mode::ECB: mode_str = "ECB"; break;
+            case Mode::CBC: mode_str = "CBC"; break;
+            case Mode::CFB: mode_str = "CFB"; break;
+            case Mode::OFB: mode_str = "OFB"; break;
+            case Mode::CTR: mode_str = "CTR"; break;
+            case Mode::GCM: mode_str = "GCM"; break;
+            default: mode_str = "CBC"; break;
+        }
+        
+        // GPU progress callback adapter
+        auto gpu_progress_callback = [progress_callback](double progress, const std::string& status, size_t kps) {
+            if (progress_callback) {
+                progress_callback(progress, status + " (GPU: " + std::to_string(kps) + " keys/sec)");
+            }
+        };
+        
+        // Perform GPU-accelerated attack
+        GPUAttackResult gpu_result;
+        if (attack_method == AttackMethod::BRUTE_FORCE) {
+            gpu_result = gpu_engine_->gpu_brute_force_attack(
+                encrypted_data, algo_str, mode_str, key_size, 0, 0, gpu_progress_callback
+            );
+        } else {
+            // For other attack methods, fall back to CPU implementation
+            return decrypt_file(encrypted_data, algorithm, mode, key_size, attack_method, PerformanceMode::PERFORMANCE, progress_callback);
+        }
+        
+        // Convert GPU result to regular result
+        result.success = gpu_result.success;
+        result.data = gpu_result.data;
+        result.error_message = gpu_result.error_message;
+        result.key_found = gpu_result.key_found;
+        result.time_taken = gpu_result.time_taken;
+        result.attempts_made = gpu_result.attempts_made;
+        
+    } catch (const std::exception& e) {
+        result.error_message = "GPU decryption error: " + std::string(e.what());
+    }
+    
+    return result;
+}
+
+bool CryptoEngine::initialize_gpu(const std::string& platform) {
+    if (!gpu_engine_) {
+        return false;
+    }
+    
+    GPUPlatform gpu_platform = GPUPlatform::AUTO_DETECT;
+    if (platform == "cuda") {
+        gpu_platform = GPUPlatform::CUDA;
+    } else if (platform == "opencl") {
+        gpu_platform = GPUPlatform::OPENCL;
+    }
+    
+    return gpu_engine_->initialize_gpu(gpu_platform);
+}
+
+std::vector<std::string> CryptoEngine::get_available_gpu_platforms() {
+    std::vector<std::string> platforms;
+    
+    if (!gpu_engine_) {
+        return platforms;
+    }
+    
+    auto devices = gpu_engine_->detect_gpu_devices();
+    std::set<std::string> unique_platforms;
+    
+    for (const auto& device : devices) {
+        if (device.platform == GPUPlatform::CUDA) {
+            unique_platforms.insert("CUDA");
+        } else if (device.platform == GPUPlatform::OPENCL) {
+            unique_platforms.insert("OpenCL");
+        }
+    }
+    
+    for (const auto& platform : unique_platforms) {
+        platforms.push_back(platform);
+    }
+    
+    return platforms;
+}
+
+bool CryptoEngine::switch_gpu_platform(const std::string& platform) {
+    if (!gpu_engine_) {
+        return false;
+    }
+    
+    GPUPlatform gpu_platform = GPUPlatform::AUTO_DETECT;
+    if (platform == "CUDA") {
+        gpu_platform = GPUPlatform::CUDA;
+    } else if (platform == "OpenCL") {
+        gpu_platform = GPUPlatform::OPENCL;
+    }
+    
+    return gpu_engine_->switch_platform(gpu_platform);
+}
+
+std::string CryptoEngine::get_gpu_info() const {
+    if (!gpu_engine_) {
+        return "GPU engine not available";
+    }
+    
+    auto devices = gpu_engine_->detect_gpu_devices();
+    if (devices.empty()) {
+        return "No GPU devices detected";
+    }
+    
+    std::string info = "GPU Devices:\n";
+    for (const auto& device : devices) {
+        info += "- " + device.name + " (" + device.vendor + ")\n";
+        info += "  Memory: " + std::to_string(device.memory_size / (1024*1024)) + " MB\n";
+        info += "  Compute Units: " + std::to_string(device.compute_units) + "\n";
+        info += "  Platform: " + std::string(device.platform == GPUPlatform::CUDA ? "CUDA" : "OpenCL") + "\n";
+    }
+    
+    info += "\nCurrent Platform: " + gpu_engine_->get_platform_info();
+    return info;
 }
