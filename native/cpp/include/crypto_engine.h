@@ -6,6 +6,8 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <functional>
+#include <future>
 
 // Encryption algorithm types
 enum class Algorithm {

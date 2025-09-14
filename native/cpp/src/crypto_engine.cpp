@@ -3,12 +3,13 @@
 #include <cryptopp/des.h>
 #include <cryptopp/blowfish.h>
 #include <cryptopp/twofish.h>
-#include <cryptopp/rc4.h>
+#include <cryptopp/arc4.h>
 #include <cryptopp/chacha.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/secblock.h>
+#include <cryptopp/sha.h>
 #include <random>
 #include <chrono>
 #include <algorithm>
@@ -26,7 +27,7 @@ CryptoEngine::~CryptoEngine() {
 
 DecryptionResult CryptoEngine::decrypt_file(
     const std::vector<uint8_t>& encrypted_data,
-    Algorithm algorithm,
+    ::Algorithm algorithm,
     Mode mode,
     int key_size,
     AttackMethod attack_method,
@@ -45,13 +46,16 @@ DecryptionResult CryptoEngine::decrypt_file(
     try {
         // Route to appropriate algorithm
         switch (algorithm) {
-            case Algorithm::AES:
+            case ::Algorithm::AES:
                 result = decrypt_aes(encrypted_data, mode, key_size, attack_method, performance_mode, progress_callback);
                 break;
-            case Algorithm::DES:
+            case ::Algorithm::DES:
                 result = decrypt_des(encrypted_data, mode, attack_method, performance_mode, progress_callback);
                 break;
-            case Algorithm::BLOWFISH:
+            case ::Algorithm::TRIPLE_DES:
+                result = decrypt_des(encrypted_data, mode, attack_method, performance_mode, progress_callback);
+                break;
+            case ::Algorithm::BLOWFISH:
                 result = decrypt_blowfish(encrypted_data, mode, attack_method, performance_mode, progress_callback);
                 break;
             default:
@@ -86,11 +90,11 @@ DecryptionResult CryptoEngine::decrypt_aes(
 ) {
     switch (attack) {
         case AttackMethod::BRUTE_FORCE:
-            return brute_force_attack(data, Algorithm::AES, mode, key_size, perf, cb);
+            return brute_force_attack(data, ::Algorithm::AES, mode, key_size, perf, cb);
         case AttackMethod::DICTIONARY:
-            return dictionary_attack(data, Algorithm::AES, mode, key_size, perf, cb);
+            return dictionary_attack(data, ::Algorithm::AES, mode, key_size, perf, cb);
         default:
-            return brute_force_attack(data, Algorithm::AES, mode, key_size, perf, cb);
+            return brute_force_attack(data, ::Algorithm::AES, mode, key_size, perf, cb);
     }
 }
 
@@ -101,7 +105,7 @@ DecryptionResult CryptoEngine::decrypt_des(
     PerformanceMode perf,
     ProgressCallback cb
 ) {
-    return brute_force_attack(data, Algorithm::DES, mode, 64, perf, cb);
+    return brute_force_attack(data, ::Algorithm::DES, mode, 64, perf, cb);
 }
 
 DecryptionResult CryptoEngine::decrypt_blowfish(
@@ -111,12 +115,12 @@ DecryptionResult CryptoEngine::decrypt_blowfish(
     PerformanceMode perf,
     ProgressCallback cb
 ) {
-    return brute_force_attack(data, Algorithm::BLOWFISH, mode, 448, perf, cb);
+    return brute_force_attack(data, ::Algorithm::BLOWFISH, mode, 448, perf, cb);
 }
 
 DecryptionResult CryptoEngine::brute_force_attack(
     const std::vector<uint8_t>& data,
-    Algorithm algo,
+    ::Algorithm algo,
     Mode mode,
     int key_size,
     PerformanceMode perf,
@@ -160,7 +164,7 @@ DecryptionResult CryptoEngine::brute_force_attack(
                     plaintext.resize(data.size());
                     
                     // Try decryption based on algorithm and mode
-                    if (algo == Algorithm::AES) {
+                    if (algo == ::Algorithm::AES) {
                         if (mode == Mode::CBC) {
                             CBC_Mode<AES>::Decryption decryption;
                             decryption.SetKeyWithIV(key, key.size(), iv);
@@ -215,7 +219,7 @@ DecryptionResult CryptoEngine::brute_force_attack(
 
 DecryptionResult CryptoEngine::dictionary_attack(
     const std::vector<uint8_t>& data,
-    Algorithm algo,
+    ::Algorithm algo,
     Mode mode,
     int key_size,
     PerformanceMode perf,
@@ -242,12 +246,13 @@ DecryptionResult CryptoEngine::dictionary_attack(
             SecByteBlock iv(16);
             
             // Simple key derivation (in practice, use PBKDF2/scrypt)
-            StringSource(password, true, new HashFilter(SHA256(), new ArraySink(key, key.size())));
+            SHA256 hash;
+            StringSource(password, true, new HashFilter(hash, new ArraySink(key, key.size())));
             
             std::vector<uint8_t> plaintext(data.size());
             
             // Try decryption
-            if (algo == Algorithm::AES && mode == Mode::CBC) {
+            if (algo == ::Algorithm::AES && mode == Mode::CBC) {
                 CBC_Mode<AES>::Decryption decryption;
                 decryption.SetKeyWithIV(key, key.size(), iv);
                 

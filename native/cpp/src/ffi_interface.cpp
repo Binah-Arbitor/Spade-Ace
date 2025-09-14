@@ -1,5 +1,6 @@
 #include "../include/file_analyzer.h"
 #include "../include/crypto_engine.h"
+#include <cstring>
 
 extern "C" {
     // FFI interface for Flutter
