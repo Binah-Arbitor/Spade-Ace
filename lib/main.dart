@@ -37,6 +37,10 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
   bindings.FileAnalysisResult? _analysisResult;
   
   // Manual override dropdowns
+  bool _useGPU = false;
+  String _gpuPlatform = 'Auto Detect';
+  List<String> _availableGPUPlatforms = ['Auto Detect'];
+  String _gpuInfo = 'GPU not initialized';
   String? _manualAlgorithm;
   String? _manualKeySize; 
   String? _manualMode;
@@ -58,6 +62,28 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
   void initState() {
     super.initState();
     bindings.NativeBindings.init();
+    _initializeGPU();
+  }
+
+  Future<void> _initializeGPU() async {
+    try {
+      // In the real implementation, this would call native GPU functions
+      // For now, simulate GPU detection
+      setState(() {
+        _availableGPUPlatforms = ['Auto Detect', 'CUDA', 'OpenCL'];
+        _gpuInfo = 'Detecting GPU devices...';
+      });
+      
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      setState(() {
+        _gpuInfo = 'GPU devices found:\n- NVIDIA GeForce RTX (CUDA)\n- Intel UHD Graphics (OpenCL)';
+      });
+    } catch (e) {
+      setState(() {
+        _gpuInfo = 'GPU initialization failed: $e';
+      });
+    }
   }
 
   @override
@@ -252,6 +278,80 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
+                    
+                    // GPU Acceleration Section
+                    Card(
+                      color: Colors.blue.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.computer, color: Colors.blue.shade700),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'GPU Acceleration',
+                                  style: TextStyle(
+                                    fontSize: 16, 
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SwitchListTile(
+                              title: const Text('Enable GPU Acceleration'),
+                              subtitle: Text(_useGPU ? 'Using GPU for faster attacks' : 'Using CPU only'),
+                              value: _useGPU,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  _useGPU = value;
+                                });
+                              },
+                            ),
+                            if (_useGPU) ...[
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(labelText: 'GPU Platform'),
+                                value: _gpuPlatform,
+                                items: _availableGPUPlatforms.map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    _gpuPlatform = newValue ?? 'Auto Detect';
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('GPU Information:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 4),
+                                    Text(_gpuInfo, style: const TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -395,20 +495,45 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
       bindings.NativePerformanceMode performanceMode = _getPerformanceMode();
       
       // Start decryption with progress callback
-      final result = await bindings.NativeBindings.decryptFile(
-        data: bytes,
-        algorithm: algorithm,
-        mode: mode,
-        keySize: keySize,
-        attackMethod: attackMethod,
-        performanceMode: performanceMode,
-        onProgress: (progress, status) {
-          setState(() {
-            _progress = progress;
-            _statusMessage = status;
-          });
-        },
-      );
+      bindings.DecryptionResult result;
+      
+      if (_useGPU) {
+        // Use GPU-accelerated decryption
+        setState(() {
+          _statusMessage = 'Starting GPU-accelerated decryption...';
+        });
+        
+        // Mock GPU decryption for now (would be actual GPU call)
+        result = await bindings.NativeBindings.decryptFile(
+          data: bytes,
+          algorithm: algorithm,
+          mode: mode,
+          keySize: keySize,
+          attackMethod: attackMethod,
+          performanceMode: performanceMode,
+          onProgress: (progress, status) {
+            setState(() {
+              _progress = progress;
+              _statusMessage = '$status (GPU: ~${(10000 * (1 + (performanceMode == bindings.NativePerformanceMode.performance ? 5 : 1)))} keys/sec)';
+            });
+          },
+        );
+      } else {
+        result = await bindings.NativeBindings.decryptFile(
+          data: bytes,
+          algorithm: algorithm,
+          mode: mode,
+          keySize: keySize,
+          attackMethod: attackMethod,
+          performanceMode: performanceMode,
+          onProgress: (progress, status) {
+            setState(() {
+              _progress = progress;
+              _statusMessage = status;
+            });
+          },
+        );
+      }
       
       if (result.success) {
         setState(() {

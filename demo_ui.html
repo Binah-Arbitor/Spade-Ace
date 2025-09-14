@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spade Ace - File Decryption Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            background: #f8f9ff;
+            border: 1px solid #e1e5f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .gpu-card {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+        }
+        .gpu-title {
+            color: #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            flex: 1;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .switch-toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .switch-toggle.active {
+            background: #2196f3;
+        }
+        .switch-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .switch-toggle.active::after {
+            transform: translateX(26px);
+        }
+        .gpu-info {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .progress-section {
+            background: #f0f4f8;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            width: 65%;
+            transition: width 0.3s ease;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #2196f3;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1976d2;
+        }
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #388e3c;
+        }
+        .analysis-result {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🃏 Spade Ace - File Decryption Tool</h1>
+            <p>Advanced cryptographic attack tool with GPU acceleration</p>
+        </div>
+        
+        <div class="content">
+            <!-- File Selection -->
+            <div class="card">
+                <div class="card-title">📁 File Selection</div>
+                <div class="form-group">
+                    <button class="btn btn-primary">Select Encrypted File</button>
+                    <p style="margin: 8px 0; color: #666;">Selected: encrypted_document.aes</p>
+                </div>
+                <button class="btn btn-success">Analyze File</button>
+                
+                <div class="analysis-result">
+                    <strong>Analysis Results:</strong><br>
+                    <div style="margin-top: 8px; font-family: monospace; font-size: 12px;">
+                        Detected Algorithm: AES-256<br>
+                        Detected Mode: CBC<br>
+                        File Type: OpenSSL encrypted file<br>
+                        Confidence: 95%<br>
+                        Entropy: 7.8/8.0 (high randomness)
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manual Override -->
+            <div class="card">
+                <div class="card-title">⚙️ Manual Override</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Algorithm</label>
+                        <select class="form-control">
+                            <option selected>AES (Auto-detected)</option>
+                            <option>DES</option>
+                            <option>3DES</option>
+                            <option>Blowfish</option>
+                            <option>Twofish</option>
+                            <option>RC4</option>
+                            <option>ChaCha20</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Key Size</label>
+                        <select class="form-control">
+                            <option>128 bits</option>
+                            <option>192 bits</option>
+                            <option selected>256 bits</option>
+                            <option>512 bits</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mode</label>
+                        <select class="form-control">
+                            <option>ECB</option>
+                            <option selected>CBC</option>
+                            <option>CFB</option>
+                            <option>OFB</option>
+                            <option>CTR</option>
+                            <option>GCM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- GPU Acceleration -->
+            <div class="card gpu-card">
+                <div class="card-title gpu-title">
+                    <span class="icon">💻</span>
+                    GPU Acceleration
+                </div>
+                
+                <div class="switch">
+                    <span>Enable GPU Acceleration</span>
+                    <div class="switch-toggle active" onclick="toggleSwitch(this)"></div>
+                    <span style="color: #1976d2; font-weight: 500;">Using GPU for faster attacks</span>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>GPU Platform</label>
+                    <select class="form-control">
+                        <option>Auto Detect</option>
+                        <option selected>CUDA</option>
+                        <option>OpenCL</option>
+                    </select>
+                </div>
+                
+                <div class="gpu-info">
+                    <strong>GPU Information:</strong><br>
+                    GPU devices found:<br>
+                    - NVIDIA GeForce RTX 4090 (CUDA)<br>
+                    &nbsp;&nbsp;Memory: 24,576 MB<br>
+                    &nbsp;&nbsp;Compute Units: 128<br>
+                    &nbsp;&nbsp;Platform: CUDA<br>
+                    - Intel UHD Graphics (OpenCL)<br>
+                    &nbsp;&nbsp;Memory: 8,192 MB<br>
+                    &nbsp;&nbsp;Compute Units: 24<br>
+                    &nbsp;&nbsp;Platform: OpenCL<br><br>
+                    Current Platform: CUDA Runtime Version: 12.2<br>
+                    Estimated Performance: ~2.5M keys/sec
+                </div>
+            </div>
+            
+            <!-- Attack Configuration -->
+            <div class="card">
+                <div class="card-title">🎯 Attack Configuration</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Attack Method</label>
+                        <select class="form-control">
+                            <option selected>Brute Force</option>
+                            <option>Dictionary Attack</option>
+                            <option>Rainbow Tables</option>
+                            <option>Known Plaintext</option>
+                            <option>Chosen Plaintext</option>
+                            <option>Side Channel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Performance Mode</label>
+                        <select class="form-control">
+                            <option>Efficiency (1 core)</option>
+                            <option>Normal (3 cores)</option>
+                            <option selected>Performance (All cores + GPU)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <h3>🚀 Decryption Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p><strong>Status:</strong> GPU-accelerated brute force attack in progress...</p>
+                <p><strong>Progress:</strong> 65% complete (1,625,000 / 2,500,000 keys tested)</p>
+                <p><strong>Speed:</strong> 2,847,392 keys/sec (GPU acceleration)</p>
+                <p><strong>Time Elapsed:</strong> 0:00:35</p>
+                <p><strong>Estimated Remaining:</strong> 0:00:18</p>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-success">🔓 Start GPU Decryption</button>
+                    <button class="btn" style="background: #f44336; color: white; margin-left: 12px;">⏹️ Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+        
+        // Simulate progress animation
+        setInterval(() => {
+            const progressFill = document.querySelector('.progress-fill');
+            const currentWidth = parseInt(progressFill.style.width) || 65;
+            if (currentWidth < 100) {
+                progressFill.style.width = (currentWidth + Math.random() * 2) + '%';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

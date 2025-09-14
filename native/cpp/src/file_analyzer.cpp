@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <numeric>
+#include <array>
 
 FileAnalyzer::FileAnalyzer() {
 }

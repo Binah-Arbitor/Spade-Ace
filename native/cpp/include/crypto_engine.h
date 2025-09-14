@@ -6,6 +6,11 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <functional>
+#include <future>
+
+// Forward declaration
+class GPUEngine;
 
 // Encryption algorithm types
 enum class Algorithm {
@@ -76,12 +81,29 @@ public:
         ProgressCallback progress_callback = nullptr
     );
     
+    // GPU-accelerated decryption
+    DecryptionResult decrypt_file_gpu(
+        const std::vector<uint8_t>& encrypted_data,
+        Algorithm algorithm,
+        Mode mode,
+        int key_size,
+        AttackMethod attack_method,
+        ProgressCallback progress_callback = nullptr
+    );
+    
+    // GPU management
+    bool initialize_gpu(const std::string& platform = "auto");
+    std::vector<std::string> get_available_gpu_platforms();
+    bool switch_gpu_platform(const std::string& platform);
+    std::string get_gpu_info() const;
+    
     // Stop ongoing decryption
     void stop_decryption();
     
 private:
     std::atomic<bool> should_stop_;
     std::vector<std::unique_ptr<std::thread>> worker_threads_;
+    std::unique_ptr<GPUEngine> gpu_engine_;
     
     // Algorithm-specific decryption methods
     DecryptionResult decrypt_aes(const std::vector<uint8_t>& data, Mode mode, int key_size, 
